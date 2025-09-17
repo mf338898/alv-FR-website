@@ -1,77 +1,148 @@
-# 🏠 ALV-FORMULAIRES - Plateforme de Formulaires Immobiliers
+# 🏠 ALV Formulaires - Application de gestion immobilière
 
-Une application web moderne et intuitive pour la gestion des formulaires immobiliers, développée avec Next.js 15 et TypeScript.
+Application Next.js moderne pour la gestion des formulaires de garant et locataire pour ALV Immobilier.
 
 ## ✨ Fonctionnalités
 
-- **Formulaires spécialisés** : Locataire, Garant, Vendeur, Propriétaire, Acquéreur
-- **Interface moderne** : Design responsive avec Tailwind CSS et composants UI avancés
-- **Génération PDF** : Export automatique des formulaires en PDF
-- **Validation en temps réel** : Vérification des données saisies
-- **Multi-étapes** : Navigation intuitive entre les sections
-- **Sauvegarde automatique** : Préservation des données saisies
+### 📋 Formulaires intelligents
+- **Formulaire Garant** : Interface "papier PDF" avec validation en temps réel
+- **Formulaire Locataire** : Gestion complète des candidatures locatives
+- **Composants réutilisables** : FormField, FormSection, Cards spécialisées
+- **Validation automatique** : Indicateurs visuels de progression
 
-## 🚀 Déploiement
+### 📄 Génération PDF automatique
+- **PDF Garant** : Formulaire complet avec toutes les informations
+- **PDF Locataire** : Dossier de candidature professionnel
+- **PDF Critères** : Fiche de recherche personnalisée
+- **Génération dynamique** : Basée sur les données du formulaire
 
-### Vercel (Recommandé)
-1. Connectez-vous sur [vercel.com](https://vercel.com)
-2. Importez votre repository GitHub
-3. Déployez automatiquement
+### 📧 Système d'email professionnel
+- **Templates HTML** : Emails stylés et responsives
+- **Configuration SMTP** : Support Gmail avec App Password
+- **Pièces jointes** : PDFs automatiquement attachés
+- **Notifications** : Confirmation d'envoi avec suivi
 
-### GitHub Pages
-1. Activez GitHub Pages dans les paramètres du repository
-2. Configurez la source sur la branche `main`
-3. Déployez avec `npm run export`
+### 🎨 Interface utilisateur moderne
+- **Design responsive** : Mobile, tablette, desktop
+- **Support Dynamic Island** : iPhone optimisé
+- **Thème cohérent** : Couleurs ALV Immobilier
+- **Animations fluides** : Transitions et micro-interactions
 
-## 🛠️ Technologies
+## 🚀 Installation et démarrage
 
-- **Frontend** : Next.js 15, React 18, TypeScript
-- **Styling** : Tailwind CSS, CSS Modules
-- **UI Components** : Radix UI, Lucide Icons
-- **PDF** : PDFKit, jsPDF
-- **Validation** : Zod, React Hook Form
-- **Deployment** : Vercel, GitHub Actions
+### Prérequis
+- Node.js 18+ 
+- npm ou yarn
+- Compte Gmail avec App Password (pour l'envoi d'emails)
 
-## 📱 Compatibilité
-
-- ✅ Desktop (Chrome, Firefox, Safari, Edge)
-- ✅ Mobile (iOS Safari, Chrome Mobile)
-- ✅ Tablette (iPad, Android)
-
-## 🔧 Installation Locale
-
+### Installation
 ```bash
 # Cloner le repository
-git clone https://github.com/mf338898/ALV-FORMULAIRES.git
-cd ALV-FORMULAIRES
+git clone https://github.com/elfovo/alv.git
+cd alv
 
 # Installer les dépendances
 npm install
 
-# Lancer en développement
-npm run dev
-
-# Construire pour la production
-npm run build
+# Configuration des variables d'environnement
+cp .env.example .env.local
+# Éditer .env.local avec vos paramètres Gmail
 ```
 
-## 📄 Structure des Formulaires
+### Configuration email
+```bash
+# .env.local
+GMAIL_USER=votre-email@gmail.com
+GMAIL_APP_PASSWORD=votre-app-password
+RECIPIENT_EMAIL=email-destination@example.com
+SMTP_FROM_NAME=ALV Immobilier
+```
 
-- **Locataire** : Informations personnelles, professionnelles, critères de recherche
-- **Garant** : Données du garant, cautionnement
-- **Vendeur** : Détails de vente, bien immobilier
-- **Propriétaire** : Informations propriétaire, gestion locative
-- **Acquéreur** : Profil acheteur, financement
+### Démarrage
+```bash
+# Mode développement
+npm run dev
 
-## 🌐 URL de Déploiement
+# Build de production
+npm run build
+npm start
+```
 
-- **Production** : [https://alv-formulaires.vercel.app](https://alv-formulaires.vercel.app)
-- **Développement** : [http://localhost:3000](http://localhost:3000)
+## 📁 Structure du projet
+
+```
+alv/
+├── app/                          # App Router Next.js
+│   ├── api/                      # API Routes
+│   │   ├── generer-pdf-garant/   # Génération PDF garant
+│   │   └── generer-pdf-locataire/# Génération PDF locataire
+│   ├── garant/formulaire/        # Formulaire garant
+│   ├── locataire/formulaire/     # Formulaire locataire
+│   └── page.tsx                  # Page d'accueil
+├── components/                   # Composants React
+│   ├── ui/                      # Composants UI de base
+│   ├── form-field.tsx           # Champ de formulaire réutilisable
+│   ├── form-section.tsx         # Section de formulaire
+│   ├── garant-card.tsx          # Carte garant
+│   └── locataire-card.tsx       # Carte locataire
+├── lib/                         # Utilitaires et logique métier
+│   ├── email-templates.ts       # Templates d'email
+│   ├── mail.ts                 # Configuration SMTP
+│   ├── pdf-*-generator.ts      # Générateurs PDF
+│   └── types.ts                # Types TypeScript
+├── scripts/                     # Scripts de maintenance
+└── public/images/              # Assets statiques
+```
+
+## 🛠️ Scripts disponibles
+
+```bash
+npm run dev          # Démarrage développement
+npm run build        # Build de production
+npm run start        # Démarrage production
+npm run lint         # Linting ESLint
+npm run clean        # Nettoyage cache
+npm run fresh        # Reset complet + rebuild
+npm run health       # Vérification santé app
+npm run maintenance  # Maintenance cache
+```
+
+## 🔧 Technologies utilisées
+
+- **Framework** : Next.js 15 (App Router)
+- **Langage** : TypeScript
+- **Styling** : Tailwind CSS
+- **UI Components** : Radix UI + Shadcn/ui
+- **PDF Generation** : pdf-lib
+- **Email** : Nodemailer
+- **Icons** : Lucide React
+- **Animations** : Framer Motion
+
+## 📱 Responsive Design
+
+- **Mobile First** : Optimisé pour smartphones
+- **Tablette** : Adaptation fluide des layouts
+- **Desktop** : Interface complète avec toutes les fonctionnalités
+- **Dynamic Island** : Support iPhone avec safe areas
+
+## 🚀 Déploiement
+
+### GitHub Pages
+```bash
+npm run deploy:gh-pages
+```
+
+### Build de production
+```bash
+npm run build:production
+```
 
 ## 📞 Support
 
-Pour toute question ou assistance, contactez l'équipe de développement.
+Pour toute question ou problème :
+- **Email** : contact@alvimobilier.bzh
+- **Repository** : https://github.com/elfovo/alv
 
----
+## 📄 Licence
 
-**Développé avec ❤️ par l'équipe ALV-FORMULAIRES**
+Projet privé - ALV Immobilier © 2025

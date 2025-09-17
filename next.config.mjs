@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Configuration normale pour Vercel (toutes les fonctionnalités)
+  // Configuration de production (toutes les fonctionnalités)
   images: {
     unoptimized: false
   },
