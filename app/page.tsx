@@ -1,10 +1,11 @@
 import type React from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Shield, Building2, HandCoins, Tag, Phone, Mail, MapPin, CheckCircle2, ArrowRight, Star, Clock, Users, Home, Key, Calculator, FileText } from "lucide-react"
+import { Shield, Building2, HandCoins, Tag, Phone, Mail, MapPin, CheckCircle2, ArrowRight, Star, Clock, Users, Home, Key, Calculator, FileText, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 export default function ALVImmobilierHome() {
   return (
@@ -57,12 +58,43 @@ export default function ALVImmobilierHome() {
                 </a>
               </div>
               
-              {/* Bouton contact mobile */}
+              {/* Menu contact mobile */}
               <div className="md:hidden">
-                <Button size="sm" variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
-                  <Phone className="h-4 w-4 mr-2" />
-                  Contact
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
+                      <Phone className="h-4 w-4 mr-2" />
+                      Contact
+                      <ChevronDown className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64">
+                    <DropdownMenuItem asChild>
+                      <a 
+                        href="tel:0298267147" 
+                        className="flex items-center space-x-3 cursor-pointer py-3"
+                      >
+                        <Phone className="h-4 w-4 text-blue-600" />
+                        <div className="flex flex-col">
+                          <span className="font-medium text-slate-900">📞 Appeler</span>
+                          <span className="text-sm text-slate-600">02 98 26 71 47</span>
+                        </div>
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <a 
+                        href="mailto:contact@alvimobilier.bzh" 
+                        className="flex items-center space-x-3 cursor-pointer py-3"
+                      >
+                        <Mail className="h-4 w-4 text-blue-600" />
+                        <div className="flex flex-col">
+                          <span className="font-medium text-slate-900">📧 Email</span>
+                          <span className="text-sm text-slate-600">contact@alvimobilier.bzh</span>
+                        </div>
+                      </a>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
           </div>
@@ -384,14 +416,9 @@ export default function ALVImmobilierHome() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Informations de l'agence */}
             <div className="lg:col-span-2">
-              <div className="flex items-center space-x-3 mb-6">
-                <Image
-                  src="/images/logo-alv-2.jpg"
-                  alt="Logo ALV Pleyben Immobilier"
-                  width={120}
-                  height={40}
-                  className="h-10 w-auto brightness-0 invert"
-                />
+              <div className="mb-6">
+                <h3 className="text-xl font-bold text-white">ALV Immobilier</h3>
+                <p className="text-sm text-slate-300">Pleyben</p>
               </div>
                              <p className="text-slate-300 mb-6 max-w-md leading-relaxed">
                  Agence immobilière à Pleyben. 

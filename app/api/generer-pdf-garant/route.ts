@@ -1,18 +1,59 @@
 import { NextResponse } from "next/server"
 import { logger } from "@/lib/logger"
+import { sendMail } from "@/lib/mail"
+import { generateGarantPdf, buildGarantPdfFilename } from "@/lib/pdf-garant-generator"
+import { generateGarantEmailHTML, generateGarantEmailText } from "@/lib/email-templates"
+import type { GarantFormData } from "@/lib/types"
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
     logger.info('Génération PDF Garant demandée', { body })
     
-    // Ici vous pouvez ajouter votre logique de génération PDF Garant
-    // Pour l'instant, on retourne un succès
+    const { garants, cautionnes } = body
+    
+    // Préparer les données pour le PDF
+    const pdfData: GarantFormData = {
+      garants: garants,
+      cautionnes: cautionnes,
+      timestamp: new Date().toISOString()
+    }
+    
+    // Générer le PDF
+    const pdfBuffer = await generateGarantPdf(pdfData)
+    const filename = buildGarantPdfFilename(pdfData)
+    
+    logger.info('PDF généré avec succès', { filename, size: pdfBuffer.length })
+    
+    // Générer le contenu de l'email avec le template professionnel
+    const emailData = {
+      garants,
+      cautionnes,
+      timestamp: new Date().toISOString()
+    }
+    
+    const emailHTML = generateGarantEmailHTML(emailData)
+    const emailText = generateGarantEmailText(emailData)
+
+    // Envoyer l'email avec le PDF en pièce jointe
+    await sendMail({
+      to: process.env.RECIPIENT_EMAIL || 'contact@alvimobilier.bzh',
+      subject: `Nouveau formulaire garant - ${garants[0]?.nom} ${garants[0]?.prenom}`,
+      html: emailHTML,
+      attachments: [{
+        filename: filename,
+        content: pdfBuffer,
+        contentType: 'application/pdf'
+      }]
+    })
+    
+    logger.info('Email avec PDF envoyé avec succès pour le formulaire garant')
     
     return NextResponse.json({
       success: true,
-      message: 'Génération PDF Garant en cours',
-      data: body,
+      message: 'Formulaire envoyé avec succès !',
+      pdfGenerated: true,
+      filename: filename,
       timestamp: new Date().toISOString()
     })
   } catch (error) {
@@ -20,7 +61,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { 
         success: false, 
-        error: 'Erreur lors de la génération PDF Garant',
+        error: 'Erreur lors de l\'envoi du formulaire',
         details: error instanceof Error ? error.message : 'Erreur inconnue'
       },
       { status: 500 }
