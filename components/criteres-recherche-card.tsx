@@ -22,7 +22,7 @@ export function CriteresRechercheCard({
   const criteresFields = [
     { key: "nombreChambres", label: "Nombre de chambres souhaitées", type: "select" as const, options: ["1", "2", "3", "4", "5+"] },
     { key: "secteurSouhaite", label: "Secteur souhaité", type: "text" as const },
-    { key: "rayonKm", label: "Rayon de recherche (km)", type: "number" as const },
+    { key: "rayonKm", label: "Rayon de recherche (km)", type: "text" as const },
     { key: "dateEmmenagement", label: "Date d'emménagement souhaitée", type: "date" as const },
     { key: "preavisADeposer", label: "Préavis à déposer", type: "select" as const, options: ["1 mois", "2 mois", "3 mois", "Aucun"] },
     { key: "raisonDemenagement", label: "Raison du déménagement", type: "text" as const },
