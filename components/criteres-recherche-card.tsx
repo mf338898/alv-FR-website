@@ -9,6 +9,7 @@ interface CriteresRechercheCardProps {
   onFieldChange: (field: string, value: string) => void
   onFieldEdit: (field: string) => void
   onFieldBlur: () => void
+  showValidationErrors?: boolean
 }
 
 export function CriteresRechercheCard({
@@ -16,8 +17,20 @@ export function CriteresRechercheCard({
   editingField,
   onFieldChange,
   onFieldEdit,
-  onFieldBlur
+  onFieldBlur,
+  showValidationErrors = false
 }: CriteresRechercheCardProps) {
+  // Fonction pour vérifier si un champ est manquant
+  const isFieldMissing = (field: string): boolean => {
+    if (!showValidationErrors) return false
+    
+    const requiredFields = ['nombreChambres', 'secteurSouhaite', 'rayonKm', 'dateEmmenagement', 'preavisADeposer', 'raisonDemenagement', 'loyerMax', 'informationsComplementaires']
+    if (!requiredFields.includes(field)) return false
+    
+    const value = criteres[field as keyof CriteresRecherche]
+    return !value || (typeof value === 'string' && value.trim() === '')
+  }
+
   // Champs pour les critères de recherche
   const criteresFields = [
     { key: "nombreChambres", label: "Nombre de chambres souhaitées", type: "select" as const, options: ["1", "2", "3", "4", "5+"] },
@@ -48,6 +61,7 @@ export function CriteresRechercheCard({
         onFieldChange={onFieldChange}
         onFieldEdit={onFieldEdit}
         onFieldBlur={onFieldBlur}
+        isFieldMissing={isFieldMissing}
       />
     </div>
   )

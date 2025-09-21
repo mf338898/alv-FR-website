@@ -9,6 +9,7 @@ interface GarantiesCardProps {
   onFieldChange: (field: string, value: string) => void
   onFieldEdit: (field: string) => void
   onFieldBlur: () => void
+  showValidationErrors?: boolean
 }
 
 export function GarantiesCard({
@@ -16,8 +17,20 @@ export function GarantiesCard({
   editingField,
   onFieldChange,
   onFieldEdit,
-  onFieldBlur
+  onFieldBlur,
+  showValidationErrors = false
 }: GarantiesCardProps) {
+  // Fonction pour vérifier si un champ est manquant
+  const isFieldMissing = (field: string): boolean => {
+    if (!showValidationErrors) return false
+    
+    const requiredFields = ['garantFamilial', 'garantieVisale', 'precisionGarant']
+    if (!requiredFields.includes(field)) return false
+    
+    const value = garanties[field as keyof Garanties]
+    return !value || (typeof value === 'string' && value.trim() === '')
+  }
+
   // Champs pour les garanties
   const garantiesFields = [
     { key: "garantFamilial", label: "Garant familial", type: "select" as const, options: ["oui", "non"] },
@@ -43,6 +56,7 @@ export function GarantiesCard({
         onFieldChange={onFieldChange}
         onFieldEdit={onFieldEdit}
         onFieldBlur={onFieldBlur}
+        isFieldMissing={isFieldMissing}
       />
     </div>
   )

@@ -16,6 +16,7 @@ interface GarantCardProps {
   onFieldBlur: () => void
   onRemove: () => void
   canRemove: boolean
+  showValidationErrors?: boolean
 }
 
 // Configuration des champs par section
@@ -61,8 +62,23 @@ export function GarantCard({
   onFieldEdit,
   onFieldBlur,
   onRemove,
-  canRemove
+  canRemove,
+  showValidationErrors = false
 }: GarantCardProps) {
+  // Fonction pour vérifier si un champ est manquant
+  const isFieldMissing = (field: string): boolean => {
+    if (!showValidationErrors) return false
+    
+    const requiredFields = [
+      'nom', 'prenom', 'civilite', 'situationConjugale', 'adresseActuelle', 'telephone', 'email', 
+      'dateNaissance', 'lieuNaissance', 'profession', 'employeurNom', 'dateEmbauche', 'typeContrat', 'salaire',
+      'locataireConcerneNom', 'locataireConcernePrenom', 'locataireConcerneEmail', 'locataireConcerneTelephone'
+    ]
+    if (!requiredFields.includes(field)) return false
+    
+    const value = garant[field as keyof Locataire]
+    return !value || (typeof value === 'string' && value.trim() === '')
+  }
   return (
     <Card className="overflow-hidden">
       <CardContent className="p-0">
@@ -118,6 +134,7 @@ export function GarantCard({
             onFieldChange={onFieldChange}
             onFieldEdit={onFieldEdit}
             onFieldBlur={onFieldBlur}
+            isFieldMissing={isFieldMissing}
           />
 
           <FormSection
@@ -128,6 +145,7 @@ export function GarantCard({
             onFieldChange={onFieldChange}
             onFieldEdit={onFieldEdit}
             onFieldBlur={onFieldBlur}
+            isFieldMissing={isFieldMissing}
           />
 
           <FormSection
@@ -138,6 +156,7 @@ export function GarantCard({
             onFieldChange={onFieldChange}
             onFieldEdit={onFieldEdit}
             onFieldBlur={onFieldBlur}
+            isFieldMissing={isFieldMissing}
           />
 
           <FormSection
@@ -148,6 +167,7 @@ export function GarantCard({
             onFieldChange={onFieldChange}
             onFieldEdit={onFieldEdit}
             onFieldBlur={onFieldBlur}
+            isFieldMissing={isFieldMissing}
           />
 
           <FormSection
@@ -158,6 +178,7 @@ export function GarantCard({
             onFieldChange={onFieldChange}
             onFieldEdit={onFieldEdit}
             onFieldBlur={onFieldBlur}
+            isFieldMissing={isFieldMissing}
           />
         </div>
       </CardContent>

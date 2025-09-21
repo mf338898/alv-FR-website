@@ -51,7 +51,6 @@ const createEmptyGarant = (): Locataire => ({
   situationActuelleSansEmploi: "",
   origineRevenuPrincipal: "",
   origineRevenuPrincipalAutre: "",
-  informationsComplementaires: "",
   locataireConcerneNom: "",
   locataireConcernePrenom: "",
   locataireConcerneEmail: "",
@@ -69,6 +68,7 @@ export default function GarantFormPage() {
   const [editingField, setEditingField] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [showValidationErrors, setShowValidationErrors] = useState(false)
 
 
   // Fonction pour mettre à jour un champ d'un garant
@@ -76,6 +76,10 @@ export default function GarantFormPage() {
     setGarants(prev => prev.map((garant, i) => 
       i === index ? { ...garant, [field]: value } : garant
     ))
+    // Remettre showValidationErrors à false quand l'utilisateur modifie un champ
+    if (showValidationErrors) {
+      setShowValidationErrors(false)
+    }
   }
 
   // Fonction pour ajouter un garant
@@ -93,8 +97,14 @@ export default function GarantFormPage() {
   // Fonction pour vérifier si le formulaire est complet
   const isFormComplete = (): boolean => {
     for (const garant of garants) {
-      if (!garant.nom || !garant.prenom || !garant.civilite || !garant.email || !garant.telephone ||
-          !garant.locataireConcerneNom || !garant.locataireConcernePrenom || !garant.locataireConcerneEmail || !garant.locataireConcerneTelephone) {
+      if (!garant.nom?.trim() || !garant.prenom?.trim() || !garant.civilite?.trim() || 
+          !garant.situationConjugale?.trim() || !garant.adresseActuelle?.trim() || 
+          !garant.telephone?.trim() || !garant.email?.trim() || 
+          !garant.dateNaissance?.trim() || !garant.lieuNaissance?.trim() || 
+          !garant.profession?.trim() || !garant.employeurNom?.trim() || 
+          !garant.dateEmbauche?.trim() || !garant.typeContrat?.trim() || !garant.salaire?.trim() ||
+          !garant.locataireConcerneNom?.trim() || !garant.locataireConcernePrenom?.trim() || 
+          !garant.locataireConcerneEmail?.trim() || !garant.locataireConcerneTelephone?.trim()) {
         return false
       }
       }
@@ -112,7 +122,11 @@ export default function GarantFormPage() {
     
   // Fonction pour soumettre le formulaire
   const handleSubmit = async () => {
-    if (!validateForm()) return
+    if (!isFormComplete()) {
+      setShowValidationErrors(true)
+      toast.error("Veuillez remplir tous les champs obligatoires")
+      return
+    }
 
     setIsSubmitting(true)
     try {
@@ -203,6 +217,7 @@ export default function GarantFormPage() {
             onFieldBlur={() => setEditingField(null)}
             onRemove={() => removeGarant(garantIndex)}
             canRemove={garants.length > 1}
+            showValidationErrors={showValidationErrors}
           />
         ))}
 
@@ -232,7 +247,7 @@ export default function GarantFormPage() {
           {/* Bouton de soumission */}
             <Button
             onClick={handleSubmit}
-            disabled={isSubmitting || !isFormComplete()}
+            disabled={isSubmitting}
             size="lg"
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >

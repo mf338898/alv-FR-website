@@ -16,6 +16,7 @@ interface FormFieldProps {
   placeholder?: string
   options?: string[]
   autoFocus?: boolean
+  isMissing?: boolean
 }
 
 export function FormField({
@@ -28,7 +29,8 @@ export function FormField({
   type,
   placeholder,
   options = [],
-  autoFocus = false
+  autoFocus = false,
+  isMissing = false
 }: FormFieldProps) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -53,8 +55,8 @@ export function FormField({
   const isFilled = value && value.trim() !== ''
 
   return (
-    <div className="flex border-b border-gray-300 min-h-[40px]">
-      <div className="w-2/5 sm:w-1/3 bg-gray-50 border-r border-gray-300 px-2 sm:px-3 py-2 flex items-center text-xs sm:text-sm font-medium">
+    <div className={`flex border-b min-h-[40px] ${isMissing ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}>
+      <div className={`w-2/5 sm:w-1/3 border-r px-2 sm:px-3 py-2 flex items-center text-xs sm:text-sm font-medium ${isMissing ? 'bg-red-100 border-red-300 text-red-700' : 'bg-gray-50 border-gray-300'}`}>
         {label}
       </div>
       <div className="flex-1 px-2 sm:px-3 py-2 flex items-center justify-between">

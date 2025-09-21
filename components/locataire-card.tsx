@@ -15,6 +15,7 @@ interface LocataireCardProps {
   onFieldBlur: () => void
   onRemove: () => void
   canRemove: boolean
+  showValidationErrors?: boolean
 }
 
 export function LocataireCard({
@@ -25,8 +26,24 @@ export function LocataireCard({
   onFieldEdit,
   onFieldBlur,
   onRemove,
-  canRemove
+  canRemove,
+  showValidationErrors = false
 }: LocataireCardProps) {
+  // Fonction pour vérifier si un champ est manquant
+  const isFieldMissing = (field: string): boolean => {
+    if (!showValidationErrors) return false
+    
+    const requiredFields = [
+      'nom', 'prenom', 'civilite', 'situationConjugale', 'adresseActuelle', 'telephone', 'email', 
+      'dateNaissance', 'lieuNaissance', 'profession', 'employeurNom', 'employeurAdresse', 
+      'employeurTelephone', 
+      'dateEmbauche', 'typeContrat', 'salaire'
+    ]
+    if (!requiredFields.includes(field)) return false
+    
+    const value = locataire[field as keyof Locataire]
+    return !value || (typeof value === 'string' && value.trim() === '')
+  }
   // Champs pour la section Identité
   const identiteFields = [
     { key: "civilite", label: "Civilité", type: "select" as const, options: ["Madame", "Monsieur"] },
@@ -103,6 +120,7 @@ export function LocataireCard({
         onFieldChange={onFieldChange}
         onFieldEdit={onFieldEdit}
         onFieldBlur={onFieldBlur}
+        isFieldMissing={isFieldMissing}
       />
 
       {/* Section Professionnel */}
@@ -114,6 +132,7 @@ export function LocataireCard({
         onFieldChange={onFieldChange}
         onFieldEdit={onFieldEdit}
         onFieldBlur={onFieldBlur}
+        isFieldMissing={isFieldMissing}
       />
 
 

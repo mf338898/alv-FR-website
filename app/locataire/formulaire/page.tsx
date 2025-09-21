@@ -97,6 +97,7 @@ export default function LocataireFormPage() {
   const [editingField, setEditingField] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [showValidationErrors, setShowValidationErrors] = useState(false)
 
   // Fonction pour vérifier si le formulaire est complet
   const isFormComplete = () => {
@@ -104,7 +105,7 @@ export default function LocataireFormPage() {
     const requiredFields: (keyof Locataire)[] = [
       'nom', 'prenom', 'civilite', 'situationConjugale', 'adresseActuelle',
       'telephone', 'email', 'dateNaissance', 'lieuNaissance', 'profession',
-      'employeurNom', 'dateEmbauche', 'typeContrat', 'salaire'
+      'employeurNom', 'employeurAdresse', 'employeurTelephone', 'dateEmbauche', 'typeContrat', 'salaire'
     ]
 
     const locatairesComplete = locataires.every(locataire => 
@@ -117,16 +118,26 @@ export default function LocataireFormPage() {
     const criteresComplete = veutRemplirRecherche === "non" || (
       criteresRecherche.nombreChambres && 
       criteresRecherche.secteurSouhaite && 
-      criteresRecherche.dateEmmenagement
+      criteresRecherche.rayonKm &&
+      criteresRecherche.dateEmmenagement &&
+      criteresRecherche.preavisADeposer &&
+      criteresRecherche.raisonDemenagement &&
+      criteresRecherche.loyerMax &&
+      criteresRecherche.informationsComplementaires
     )
 
     // Vérifier les garanties
-    const garantiesComplete = garanties.garantFamilial && garanties.precisionGarant
+    const garantiesComplete = garanties.garantFamilial && garanties.garantieVisale && garanties.precisionGarant
 
     return locatairesComplete && criteresComplete && garantiesComplete && bienConcerne
   }
 
   const handleFieldChange = (field: string, value: string) => {
+    // Remettre showValidationErrors à false quand l'utilisateur modifie un champ
+    if (showValidationErrors) {
+      setShowValidationErrors(false)
+    }
+
     // Gérer les champs globaux
     if (field === "nombreEnfantsFoyer") {
       setNombreEnfantsFoyer(parseInt(value) || 0)
@@ -187,6 +198,12 @@ export default function LocataireFormPage() {
   }
 
   const handleSubmit = async () => {
+    if (!isFormComplete()) {
+      setShowValidationErrors(true)
+      toast.error("Veuillez remplir tous les champs obligatoires")
+      return
+    }
+
     setIsSubmitting(true)
     
     try {
@@ -332,6 +349,7 @@ export default function LocataireFormPage() {
               onFieldBlur={handleFieldBlur}
               onRemove={() => removeLocataire(index)}
               canRemove={locataires.length > 1}
+              showValidationErrors={showValidationErrors}
             />
           ))}
         </div>
@@ -343,6 +361,7 @@ export default function LocataireFormPage() {
           onFieldChange={(field, value) => handleFieldChange(`criteres_${field}`, value)}
           onFieldEdit={(field) => handleFieldEdit(`criteres_${field}`)}
           onFieldBlur={handleFieldBlur}
+          showValidationErrors={showValidationErrors}
         />
 
         {/* Garanties */}
@@ -352,6 +371,7 @@ export default function LocataireFormPage() {
           onFieldChange={(field, value) => handleFieldChange(`garanties_${field}`, value)}
           onFieldEdit={(field) => handleFieldEdit(`garanties_${field}`)}
           onFieldBlur={handleFieldBlur}
+          showValidationErrors={showValidationErrors}
         />
 
         {/* Boutons d'action */}
@@ -382,7 +402,7 @@ export default function LocataireFormPage() {
             onClick={handleSubmit}
             size="lg"
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
-            disabled={isSubmitting || !isFormComplete()}
+            disabled={isSubmitting}
           >
             <Send className="h-5 w-5" />
             {isSubmitting ? "Envoi en cours..." : "Envoyer le formulaire"}

@@ -16,6 +16,7 @@ interface FormSectionProps {
   onFieldChange: (key: string, value: string) => void
   onFieldEdit: (key: string) => void
   onFieldBlur: () => void
+  isFieldMissing?: (field: string) => boolean
 }
 
 export function FormSection({
@@ -25,7 +26,8 @@ export function FormSection({
   editingField,
   onFieldChange,
   onFieldEdit,
-  onFieldBlur
+  onFieldBlur,
+  isFieldMissing
 }: FormSectionProps) {
   return (
     <div className="border-b border-gray-300">
@@ -46,6 +48,7 @@ export function FormSection({
           placeholder={field.placeholder}
           options={field.options}
           autoFocus={editingField === field.key || (editingField && editingField.endsWith(`_${field.key}`)) || false}
+          isMissing={isFieldMissing?.(field.key) || false}
         />
       ))}
     </div>
