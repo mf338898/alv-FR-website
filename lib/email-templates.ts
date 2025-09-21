@@ -24,6 +24,7 @@ export function generateGarantEmailHTML(data: {
             <h2 style="color: #0072BC; margin: 0 0 10px 0; font-size: 16px;">📊 Résumé général</h2>
             <p style="margin: 5px 0;"><strong>Nombre de garants :</strong> ${garants.length}</p>
             <p style="margin: 5px 0;"><strong>Nombre de locataires concernés :</strong> ${garants.filter(g => g.locataireConcerneNom || g.locataireConcernePrenom).length}</p>
+            <p style="margin: 5px 0;"><strong>Locataire concerné :</strong> ${garants.filter(g => g.locataireConcerneNom || g.locataireConcernePrenom).map(g => `${g.locataireConcernePrenom || ''} ${g.locataireConcerneNom || ''}`).filter(Boolean).join(', ') || 'Non renseigné'}</p>
             <p style="margin: 5px 0;"><strong>Date de soumission :</strong> ${new Date().toLocaleString('fr-FR')}</p>
         </div>
 
@@ -89,6 +90,7 @@ NOUVEAU FORMULAIRE DE GARANT REÇU - ALV IMMOBILIER
 RÉSUMÉ GÉNÉRAL :
 - Nombre de garants : ${garants.length}
 - Nombre de locataires concernés : ${garants.filter(g => g.locataireConcerneNom || g.locataireConcernePrenom).length}
+- Locataire concerné : ${garants.filter(g => g.locataireConcerneNom || g.locataireConcernePrenom).map(g => `${g.locataireConcernePrenom || ''} ${g.locataireConcerneNom || ''}`).filter(Boolean).join(', ') || 'Non renseigné'}
 - Date de soumission : ${new Date().toLocaleString('fr-FR')}
 
 GARANT(S) :
