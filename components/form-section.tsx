@@ -41,11 +41,11 @@ export function FormSection({
           onChange={(value) => onFieldChange(field.key, value)}
           onEdit={() => onFieldEdit(field.key)}
           onBlur={onFieldBlur}
-          isEditing={editingField === field.key}
+          isEditing={editingField === field.key || editingField?.endsWith(`_${field.key}`)}
           type={field.type}
           placeholder={field.placeholder}
           options={field.options}
-          autoFocus={editingField === field.key}
+          autoFocus={editingField === field.key || editingField?.endsWith(`_${field.key}`)}
         />
       ))}
     </div>

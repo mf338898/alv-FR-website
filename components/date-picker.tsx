@@ -1,161 +1,115 @@
 "use client"
 
 import * as React from "react"
-import { format, isAfter, isBefore, parseISO, startOfYear, endOfYear, isValid } from "date-fns"
-import { fr } from "date-fns/locale"
-import { CalendarIcon, ChevronDown } from "lucide-react"
-
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
+import { Calendar as CalendarIcon } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { cn } from "@/lib/utils"
 
-export type DatePickerProps = {
-  id?: string
-  value?: string // ISO: yyyy-MM-dd
-  onChange?: (iso: string) => void
-  fromYear?: number
-  toYear?: number
-  disableFuture?: boolean
-  ariaLabel?: string
-  className?: string
+interface DatePickerProps {
+  value?: string
+  onChange: (value: string) => void
   placeholder?: string
-  displayFormat?: string // default dd/MM/yyyy
+  className?: string
 }
 
-const MONTHS_FR = [
-  "janvier",
-  "février",
-  "mars",
-  "avril",
-  "mai",
-  "juin",
-  "juillet",
-  "août",
-  "septembre",
-  "octobre",
-  "novembre",
-  "décembre",
-]
-
 export function DatePicker({
-  id,
   value,
   onChange,
-  fromYear = 1950,
-  toYear = new Date().getFullYear() + 5,
-  disableFuture = false,
-  ariaLabel,
-  className,
-  placeholder = "jj/mm/aaaa",
-  displayFormat = "dd/MM/yyyy",
+  placeholder = "Sélectionner une date",
+  className
 }: DatePickerProps) {
-  const selected = React.useMemo(() => {
-    if (!value) return undefined
-    const d = parseISO(value)
-    return isValid(d) ? d : undefined
-  }, [value])
-
-  const [open, setOpen] = React.useState(false)
-  const [month, setMonth] = React.useState<Date>(selected ?? new Date())
+  const currentYear = new Date().getFullYear()
+  
+  const [day, setDay] = React.useState<string>("")
+  const [month, setMonth] = React.useState<string>("")
+  const [year, setYear] = React.useState<string>("")
 
   React.useEffect(() => {
-    if (selected) setMonth(selected)
-  }, [selected])
+    if (value) {
+      const date = new Date(value)
+      if (!isNaN(date.getTime())) {
+        setDay(date.getDate().toString().padStart(2, '0'))
+        setMonth((date.getMonth() + 1).toString().padStart(2, '0'))
+        setYear(date.getFullYear().toString())
+      }
+    }
+  }, [value])
 
-  const years = React.useMemo(() => {
-    const list: number[] = []
-    for (let y = toYear; y >= fromYear; y--) list.push(y)
-    return list
-  }, [fromYear, toYear])
+  const days = Array.from({ length: 31 }, (_, i) => (i + 1).toString().padStart(2, '0'))
+  const months = [
+    { value: "01", label: "Janvier" }, { value: "02", label: "Février" }, { value: "03", label: "Mars" },
+    { value: "04", label: "Avril" }, { value: "05", label: "Mai" }, { value: "06", label: "Juin" },
+    { value: "07", label: "Juillet" }, { value: "08", label: "Août" }, { value: "09", label: "Septembre" },
+    { value: "10", label: "Octobre" }, { value: "11", label: "Novembre" }, { value: "12", label: "Décembre" }
+  ]
+  const years = Array.from({ length: currentYear - 1899 }, (_, i) => (currentYear - i).toString())
 
-  const minDate = React.useMemo(() => startOfYear(new Date(fromYear, 0, 1)), [fromYear])
-  const today = new Date()
-  const maxDate = React.useMemo(() => {
-    const logicalMax = endOfYear(new Date(toYear, 11, 31))
-    return disableFuture && isAfter(logicalMax, today) ? today : logicalMax
-  }, [toYear, disableFuture])
-
-  const handleSelect = (d?: Date) => {
-    if (!d) return
-    if (isBefore(d, minDate) || isAfter(d, maxDate)) return
-    onChange?.(format(d, "yyyy-MM-dd"))
-    setOpen(false)
+  const updateDate = (newDay: string, newMonth: string, newYear: string) => {
+    if (newDay && newMonth && newYear) {
+      const dateString = `${newYear}-${newMonth}-${newDay}`
+      onChange(dateString)
+    }
   }
 
-  const handleMonthChange = (newMonthIndex: number) => {
-    const next = new Date(month)
-    next.setMonth(newMonthIndex)
-    setMonth(next)
+  const handleDayChange = (newDay: string) => {
+    setDay(newDay)
+    updateDate(newDay, month, year)
   }
 
-  const handleYearChange = (newYear: number) => {
-    const next = new Date(month)
-    next.setFullYear(newYear)
-    setMonth(next)
+  const handleMonthChange = (newMonth: string) => {
+    setMonth(newMonth)
+    updateDate(day, newMonth, year)
+  }
+
+  const handleYearChange = (newYear: string) => {
+    setYear(newYear)
+    updateDate(day, month, newYear)
   }
 
   return (
-    <div className={cn("w-full", className)}>
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            id={id}
-            variant="outline"
-            role="combobox"
-            aria-label={ariaLabel}
-            aria-expanded={open}
-            className={cn("w-full justify-between")}
-          >
-            <span className="truncate">{selected ? format(selected, displayFormat, { locale: fr }) : placeholder}</span>
-            <div className="ml-2 flex items-center gap-2 text-slate-500">
-              <CalendarIcon className="h-4 w-4" aria-hidden="true" />
-              <ChevronDown className="h-3 w-3" aria-hidden="true" />
-            </div>
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-3" align="start">
-          <div className="mb-2 grid grid-cols-2 gap-2">
-            <Select value={String(month.getMonth())} onValueChange={(v) => handleMonthChange(Number.parseInt(v))}>
-              <SelectTrigger aria-label="Sélectionner le mois">
-                <SelectValue placeholder="Mois" />
-              </SelectTrigger>
-              <SelectContent>
-                {MONTHS_FR.map((m, idx) => (
-                  <SelectItem key={m} value={String(idx)}>
-                    {m.charAt(0).toUpperCase() + m.slice(1)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+    <div className="relative">
+      <div className="flex items-center gap-1">
+        <CalendarIcon className="h-4 w-4 text-gray-400 flex-shrink-0" />
+        
+        <Select value={day} onValueChange={handleDayChange}>
+          <SelectTrigger className={cn("h-8 w-16", className)}>
+            <SelectValue placeholder="JJ" />
+          </SelectTrigger>
+          <SelectContent>
+            {days.map((d) => (
+              <SelectItem key={d} value={d}>
+                {d}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-            <Select value={String(month.getFullYear())} onValueChange={(v) => handleYearChange(Number.parseInt(v))}>
-              <SelectTrigger aria-label="Sélectionner l'année">
-                <SelectValue placeholder="Année" />
-              </SelectTrigger>
-              <SelectContent className="max-h-64">
-                {years.map((y) => (
-                  <SelectItem key={y} value={String(y)}>
-                    {y}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <Select value={month} onValueChange={handleMonthChange}>
+          <SelectTrigger className={cn("h-8 w-20", className)}>
+            <SelectValue placeholder="MM" />
+          </SelectTrigger>
+          <SelectContent>
+            {months.map((m) => (
+              <SelectItem key={m.value} value={m.value}>
+                {m.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-          <Calendar
-            mode="single"
-            month={month}
-            onMonthChange={setMonth}
-            selected={selected}
-            onSelect={handleSelect}
-            initialFocus
-            locale={fr}
-            disabled={(date) => isBefore(date, minDate) || isAfter(date, maxDate)}
-          />
-        </PopoverContent>
-      </Popover>
+        <Select value={year} onValueChange={handleYearChange}>
+          <SelectTrigger className={cn("h-8 w-20", className)}>
+            <SelectValue placeholder="AAAA" />
+          </SelectTrigger>
+          <SelectContent>
+            {years.map((y) => (
+              <SelectItem key={y} value={y}>
+                {y}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
     </div>
   )
 }

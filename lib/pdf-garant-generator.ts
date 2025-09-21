@@ -172,6 +172,7 @@ function identityRows(l?: Locataire): Row[] {
     { label: "Domicile (ligne 1)", value: pdfSafe(addr1) },
     { label: "Domicile (ligne 2)", value: pdfSafe(addr2) },
     { label: "Situation conjugale", value: pdfSafe(showOrDash(l?.situationConjugale)) },
+    { label: "Informations complémentaires", value: pdfSafe(showOrDash(l?.informationsComplementaires)) },
   ]
 }
 
@@ -472,31 +473,31 @@ export async function generateGarantPdf(data: GarantFormData): Promise<Buffer> {
   })
   ctx1.y -= 16 // Augmenté de 12 à 16
 
-  // Locataires cautionnés
+  // Locataire concerné
   await ensureSpace(ctx1, 32) // Augmenté de 28 à 32
-  ctx1.y = drawSectionHeader(ctx1.page, "Locataires cautionnés", MARGIN, ctx1.y, ctx1.fonts.bold)
+  ctx1.y = drawSectionHeader(ctx1.page, "Locataire concerné", MARGIN, ctx1.y, ctx1.fonts.bold)
   
-  if (data.cautionnes && data.cautionnes.length > 0) {
-    for (const cautionne of data.cautionnes) {
-      const nom = [toTitleCase(cautionne.nom), toTitleCase(cautionne.prenom)].filter(Boolean).join(" ") || dash
-      const line = `${nom}${cautionne.email ? ` – ${cautionne.email}` : ""}${cautionne.telephone ? ` – ${cautionne.telephone}` : ""}`
-      const wrapped = wrapByWidth(line, fontReg, BODY_SIZE, PAGE_WIDTH - 2 * MARGIN - 16) // Augmenté de 12 à 16
-      const lh = wrapped.length >= 3 ? LONG_LINE_HEIGHT : LINE_HEIGHT
-      for (const l of wrapped) {
-        await ensureSpace(ctx1, lh)
-        ctx1.page.drawText(pdfSafe(`• ${l}`), {
-          x: MARGIN + 16, // Augmenté de 12 à 16
-          y: ctx1.y,
-          size: BODY_SIZE,
-          font: fontReg,
-          color: BLACK,
-        })
-        ctx1.y -= lh
-      }
+  // Utiliser les champs du premier garant pour le locataire concerné
+  const premierGarant = garants[0]
+  if (premierGarant && (premierGarant.locataireConcerneNom || premierGarant.locataireConcernePrenom)) {
+    const nom = [toTitleCase(premierGarant.locataireConcerneNom), toTitleCase(premierGarant.locataireConcernePrenom)].filter(Boolean).join(" ") || dash
+    const line = `${nom}${premierGarant.locataireConcerneEmail ? ` – ${premierGarant.locataireConcerneEmail}` : ""}${premierGarant.locataireConcerneTelephone ? ` – ${premierGarant.locataireConcerneTelephone}` : ""}`
+    const wrapped = wrapByWidth(line, fontReg, BODY_SIZE, PAGE_WIDTH - 2 * MARGIN - 16) // Augmenté de 12 à 16
+    const lh = wrapped.length >= 3 ? LONG_LINE_HEIGHT : LINE_HEIGHT
+    for (const l of wrapped) {
+      await ensureSpace(ctx1, lh)
+      ctx1.page.drawText(pdfSafe(`• ${l}`), {
+        x: MARGIN + 16, // Augmenté de 12 à 16
+        y: ctx1.y,
+        size: BODY_SIZE,
+        font: fontReg,
+        color: BLACK,
+      })
+      ctx1.y -= lh
     }
   } else {
     await ensureSpace(ctx1, LINE_HEIGHT)
-    ctx1.page.drawText("Aucun locataire cautionné", { x: MARGIN, y: ctx1.y, size: BODY_SIZE, font: fontReg, color: BLACK })
+    ctx1.page.drawText("Aucun locataire concerné", { x: MARGIN, y: ctx1.y, size: BODY_SIZE, font: fontReg, color: BLACK })
     ctx1.y -= LINE_HEIGHT
   }
 

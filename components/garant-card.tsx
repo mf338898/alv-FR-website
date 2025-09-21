@@ -23,7 +23,7 @@ const personalFields = [
   { key: 'civilite', label: 'Civilité', type: 'select' as const, options: ['Madame', 'Monsieur'] },
   { key: 'nom', label: 'Nom', type: 'text' as const, placeholder: 'Entrer le nom' },
   { key: 'prenom', label: 'Prénom', type: 'text' as const, placeholder: 'Entrer le prénom' },
-  { key: 'situationConjugale', label: 'Situation conjugale', type: 'select' as const, options: ['Célibataire', 'Marié(e)', 'Divorcé(e)', 'Veuf/Veuve', 'Pacsé(e)', 'Concubinage'] },
+  { key: 'situationConjugale', label: 'Situation conjugale', type: 'select' as const, options: ['Célibataire', 'Marié(e)', 'Divorcé(e)', 'Veuf/Veuve', 'Pacsé(e)'] },
   { key: 'adresseActuelle', label: 'Adresse actuelle', type: 'text' as const, placeholder: 'Entrer l\'adresse complète' },
   { key: 'telephone', label: 'Téléphone', type: 'tel' as const, placeholder: 'Entrer le numéro de téléphone' },
   { key: 'email', label: 'Adresse mail', type: 'email' as const, placeholder: 'Entrer l\'adresse email' },
@@ -40,6 +40,17 @@ const professionalFields = [
 
 const resourcesFields = [
   { key: 'salaire', label: 'Salaires', type: 'number' as const, placeholder: 'Entrer le montant en €' }
+]
+
+const locataireConcerneFields = [
+  { key: 'locataireConcerneNom', label: 'Nom', type: 'text' as const, placeholder: 'Nom du locataire' },
+  { key: 'locataireConcernePrenom', label: 'Prénom', type: 'text' as const, placeholder: 'Prénom du locataire' },
+  { key: 'locataireConcerneEmail', label: 'Email', type: 'email' as const, placeholder: 'Email du locataire' },
+  { key: 'locataireConcerneTelephone', label: 'Téléphone', type: 'text' as const, placeholder: 'Téléphone du locataire' }
+]
+
+const complementaryFields = [
+  { key: 'informationsComplementaires', label: 'Informations complémentaires', type: 'text' as const, placeholder: 'Informations supplémentaires (facultatif)' }
 ]
 
 export function GarantCard({
@@ -122,6 +133,26 @@ export function GarantCard({
           <FormSection
             title="Ressources Mensuelles :"
             fields={resourcesFields}
+            data={garant}
+            editingField={editingField}
+            onFieldChange={onFieldChange}
+            onFieldEdit={onFieldEdit}
+            onFieldBlur={onFieldBlur}
+          />
+
+          <FormSection
+            title="Locataire concerné"
+            fields={locataireConcerneFields}
+            data={garant}
+            editingField={editingField}
+            onFieldChange={onFieldChange}
+            onFieldEdit={onFieldEdit}
+            onFieldBlur={onFieldBlur}
+          />
+
+          <FormSection
+            title="Informations complémentaires"
+            fields={complementaryFields}
             data={garant}
             editingField={editingField}
             onFieldChange={onFieldChange}

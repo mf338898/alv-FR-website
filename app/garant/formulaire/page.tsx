@@ -51,157 +51,25 @@ const createEmptyGarant = (): Locataire => ({
   situationActuelleSansEmploi: "",
   origineRevenuPrincipal: "",
   origineRevenuPrincipalAutre: "",
+  informationsComplementaires: "",
+  locataireConcerneNom: "",
+  locataireConcernePrenom: "",
+  locataireConcerneEmail: "",
+  locataireConcerneTelephone: "",
 })
 
-// Créer le 1er garant prérempli pour les tests
-const createTestGarant1 = (): Locataire => ({
-  nom: "Dupont",
-  prenom: "Jean",
-  civilite: "Monsieur",
-  situationConjugale: "Marié(e)",
-  adresseActuelle: "123 Rue de la Paix, 75001 Paris",
-  telephone: "0123456789",
-  email: "jean.dupont@example.com",
-  dateNaissance: "1985-06-15",
-  lieuNaissance: "Paris",
-  situationActuelle: "",
-  preavisADeposer: "",
-  dureePreavise: "",
-  dureePreaviseAutre: "",
-  hebergeParQui: "",
-  profession: "Ingénieur",
-  etablissementFormation: "",
-  employeurNom: "TechCorp SAS",
-  employeurAdresse: "456 Avenue des Champs, 75008 Paris",
-  employeurTelephone: "0987654321",
-  dateEmbauche: "2020-03-01",
-  typeContrat: "CDI",
-  salaire: "4500",
-  revenusAdditionnels: [],
-  dateFinContrat: "",
-  dureeInscriptionInterim: "",
-  agenceInterim: "",
-  dateDebutActivite: "",
-  regimeRetraite: "",
-  dateDebutRetraite: "",
-  alternance: "",
-  typeAlternance: "",
-  situationActuelleSansEmploi: "",
-  origineRevenuPrincipal: "",
-  origineRevenuPrincipalAutre: "",
-})
-
-// Créer le 2ème garant prérempli pour les tests
-const createTestGarant2 = (): Locataire => ({
-  nom: "Martin",
-  prenom: "Marie",
-  civilite: "Madame",
-  situationConjugale: "Marié(e)",
-  adresseActuelle: "456 Avenue Victor Hugo, 69000 Lyon",
-  telephone: "0147258369",
-  email: "marie.martin@example.com",
-  dateNaissance: "1988-03-22",
-  lieuNaissance: "Lyon",
-  situationActuelle: "",
-  preavisADeposer: "",
-  dureePreavise: "",
-  dureePreaviseAutre: "",
-  hebergeParQui: "",
-  profession: "Avocate",
-  etablissementFormation: "",
-  employeurNom: "Cabinet Juridique Lyon",
-  employeurAdresse: "789 Boulevard des Belges, 69000 Lyon",
-  employeurTelephone: "0478123456",
-  dateEmbauche: "2019-09-01",
-  typeContrat: "CDI",
-  salaire: "5200",
-  revenusAdditionnels: [],
-  dateFinContrat: "",
-  dureeInscriptionInterim: "",
-  agenceInterim: "",
-  dateDebutActivite: "",
-  regimeRetraite: "",
-  dateDebutRetraite: "",
-  alternance: "",
-  typeAlternance: "",
-  situationActuelleSansEmploi: "",
-  origineRevenuPrincipal: "",
-  origineRevenuPrincipalAutre: "",
-})
-
-// Créer le 3ème garant prérempli pour les tests
-const createTestGarant3 = (): Locataire => ({
-  nom: "Bernard",
-  prenom: "Pierre",
-  civilite: "Monsieur",
-  situationConjugale: "Célibataire",
-  adresseActuelle: "789 Rue de la République, 13000 Marseille",
-  telephone: "0491234567",
-  email: "pierre.bernard@example.com",
-  dateNaissance: "1992-11-08",
-  lieuNaissance: "Marseille",
-  situationActuelle: "",
-  preavisADeposer: "",
-  dureePreavise: "",
-  dureePreaviseAutre: "",
-  hebergeParQui: "",
-  profession: "Médecin",
-  etablissementFormation: "",
-  employeurNom: "Hôpital de Marseille",
-  employeurAdresse: "321 Avenue du Prado, 13000 Marseille",
-  employeurTelephone: "0498765432",
-  dateEmbauche: "2021-01-15",
-  typeContrat: "CDI",
-  salaire: "3800",
-  revenusAdditionnels: [],
-  dateFinContrat: "",
-  dureeInscriptionInterim: "",
-  agenceInterim: "",
-  dateDebutActivite: "",
-  regimeRetraite: "",
-  dateDebutRetraite: "",
-  alternance: "",
-  typeAlternance: "",
-  situationActuelleSansEmploi: "",
-  origineRevenuPrincipal: "",
-  origineRevenuPrincipalAutre: "",
-})
 
 export default function GarantFormPage() {
   const router = useRouter()
   const [garants, setGarants] = useState<Locataire[]>([
-    createTestGarant1(),
-    createTestGarant2(),
-    createTestGarant3()
+    createEmptyGarant()
   ])
-  const [cautionnes, setCautionnes] = useState<GarantContact[]>([{
-    nom: "Martin",
-    prenom: "Sophie",
-    email: "sophie.martin@example.com",
-    telephone: "0147258369"
-  }])
+  const [cautionnes, setCautionnes] = useState<GarantContact[]>([])
   
   const [editingField, setEditingField] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
 
-  // Fonction pour vérifier si le formulaire est complet
-  const isFormComplete = () => {
-    // Vérifier que tous les garants ont les champs obligatoires remplis
-    const requiredFields: (keyof Locataire)[] = [
-      'nom', 'prenom', 'civilite', 'situationConjugale', 'adresseActuelle',
-      'telephone', 'email', 'dateNaissance', 'lieuNaissance', 'profession',
-      'employeurNom', 'dateEmbauche', 'typeContrat', 'salaire'
-    ]
-
-    return garants.every(garant => 
-      requiredFields.every(field => 
-        garant[field] && garant[field]!.trim() !== ''
-      )
-    ) && cautionnes.length > 0 && cautionnes.every(cautionne =>
-      cautionne.nom && cautionne.prenom && cautionne.email && cautionne.telephone
-    )
-  }
 
   // Fonction pour mettre à jour un champ d'un garant
   const updateGarantField = (index: number, field: keyof Locataire, value: string) => {
@@ -222,13 +90,22 @@ export default function GarantFormPage() {
     }
   }
 
-  // Fonction pour valider le formulaire
-  const validateForm = (): boolean => {
+  // Fonction pour vérifier si le formulaire est complet
+  const isFormComplete = (): boolean => {
     for (const garant of garants) {
-      if (!garant.nom || !garant.prenom || !garant.civilite || !garant.email || !garant.telephone) {
-        toast.error("Veuillez remplir tous les champs obligatoires")
+      if (!garant.nom || !garant.prenom || !garant.civilite || !garant.email || !garant.telephone ||
+          !garant.locataireConcerneNom || !garant.locataireConcernePrenom || !garant.locataireConcerneEmail || !garant.locataireConcerneTelephone) {
         return false
       }
+      }
+      return true
+    }
+    
+  // Fonction pour valider le formulaire
+  const validateForm = (): boolean => {
+    if (!isFormComplete()) {
+      toast.error("Veuillez remplir tous les champs obligatoires")
+        return false
       }
       return true
     }
@@ -355,9 +232,9 @@ export default function GarantFormPage() {
           {/* Bouton de soumission */}
             <Button
             onClick={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isFormComplete()}
             size="lg"
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             <Send className="h-5 w-5" />
             {isSubmitting ? "Envoi en cours..." : "Envoyer le formulaire"}

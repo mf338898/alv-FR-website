@@ -29,12 +29,12 @@ export function LocataireCard({
 }: LocataireCardProps) {
   // Champs pour la section Identité
   const identiteFields = [
-    { key: "civilite", label: "Civilité", type: "select" as const, options: ["Monsieur", "Madame", "Mademoiselle"] },
+    { key: "civilite", label: "Civilité", type: "select" as const, options: ["Madame", "Monsieur"] },
     { key: "nom", label: "Nom", type: "text" as const },
     { key: "prenom", label: "Prénom", type: "text" as const },
     { key: "dateNaissance", label: "Date de naissance", type: "date" as const },
     { key: "lieuNaissance", label: "Lieu de naissance", type: "text" as const },
-    { key: "situationConjugale", label: "Situation conjugale", type: "select" as const, options: ["Célibataire", "Marié(e)", "Divorcé(e)", "Veuf/Veuve", "Pacsé(e)", "Concubinage"] },
+    { key: "situationConjugale", label: "Situation conjugale", type: "select" as const, options: ["Célibataire", "Marié(e)", "Divorcé(e)", "Veuf/Veuve", "Pacsé(e)"] },
     { key: "adresseActuelle", label: "Adresse actuelle", type: "text" as const },
     { key: "telephone", label: "Téléphone", type: "text" as const },
     { key: "email", label: "Email", type: "email" as const }
@@ -51,12 +51,10 @@ export function LocataireCard({
     { key: "salaire", label: "Salaire mensuel net", type: "number" as const, placeholder: "Montant en €" }
   ]
 
-  // Champs pour la section Situation actuelle
-  const situationFields = [
-    { key: "situationActuelle", label: "Situation actuelle", type: "select" as const, options: ["Locataire", "Propriétaire", "Hébergé(e)", "Logé(e) gratuitement"] },
-    { key: "preavisADeposer", label: "Préavis à déposer", type: "select" as const, options: ["1 mois", "2 mois", "3 mois", "Aucun"] },
-    { key: "dureePreavise", label: "Durée du préavis", type: "text" as const },
-    { key: "hebergeParQui", label: "Hébergé par qui", type: "text" as const }
+
+  // Champs pour les informations complémentaires
+  const complementaryFields = [
+    { key: "informationsComplementaires", label: "Informations complémentaires", type: "text" as const, placeholder: "Informations supplémentaires (facultatif)" }
   ]
 
   return (
@@ -122,10 +120,11 @@ export function LocataireCard({
         onFieldBlur={onFieldBlur}
       />
 
-      {/* Section Situation actuelle */}
+
+      {/* Section Informations complémentaires */}
       <FormSection
-        title="Situation actuelle"
-        fields={situationFields}
+        title="Informations complémentaires"
+        fields={complementaryFields}
         data={locataire}
         editingField={editingField}
         onFieldChange={onFieldChange}

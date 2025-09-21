@@ -23,7 +23,7 @@ export function generateGarantEmailHTML(data: {
         <div style="background-color: #f0f9ff; border-left: 4px solid #0072BC; padding: 15px; margin-bottom: 20px;">
             <h2 style="color: #0072BC; margin: 0 0 10px 0; font-size: 16px;">📊 Résumé général</h2>
             <p style="margin: 5px 0;"><strong>Nombre de garants :</strong> ${garants.length}</p>
-            <p style="margin: 5px 0;"><strong>Nombre de cautionnés :</strong> ${cautionnes.length}</p>
+            <p style="margin: 5px 0;"><strong>Nombre de locataires concernés :</strong> ${garants.filter(g => g.locataireConcerneNom || g.locataireConcernePrenom).length}</p>
             <p style="margin: 5px 0;"><strong>Date de soumission :</strong> ${new Date().toLocaleString('fr-FR')}</p>
         </div>
 
@@ -46,17 +46,22 @@ export function generateGarantEmailHTML(data: {
             `).join('')}
         </div>
 
-        <!-- Cautionnés -->
+        <!-- Locataire concerné -->
         <div style="margin-bottom: 20px;">
-            <h2 style="color: #0072BC; margin: 0 0 15px 0; font-size: 16px;">🏠 Personne(s) cautionnée(s)</h2>
-            ${cautionnes.map((cautionne, index) => `
+            <h2 style="color: #0072BC; margin: 0 0 15px 0; font-size: 16px;">🏠 Locataire concerné</h2>
+            ${garants.map((garant, index) => {
+              if (garant.locataireConcerneNom || garant.locataireConcernePrenom) {
+                return `
                 <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin-bottom: 10px; border-radius: 0 4px 4px 0;">
-                    <h3 style="color: #f59e0b; margin: 0 0 10px 0; font-size: 14px;">Cautionné ${index + 1}</h3>
-                    <p style="margin: 3px 0;"><strong>Nom :</strong> ${cautionne.prenom} ${cautionne.nom}</p>
-                    <p style="margin: 3px 0;"><strong>Email :</strong> ${cautionne.email || '-'}</p>
-                    <p style="margin: 3px 0;"><strong>Téléphone :</strong> ${cautionne.telephone || '-'}</p>
+                    <h3 style="color: #f59e0b; margin: 0 0 10px 0; font-size: 14px;">Locataire concerné par le garant ${index + 1}</h3>
+                    <p style="margin: 3px 0;"><strong>Nom :</strong> ${garant.locataireConcernePrenom || ''} ${garant.locataireConcerneNom || ''}</p>
+                    <p style="margin: 3px 0;"><strong>Email :</strong> ${garant.locataireConcerneEmail || '-'}</p>
+                    <p style="margin: 3px 0;"><strong>Téléphone :</strong> ${garant.locataireConcerneTelephone || '-'}</p>
                 </div>
-            `).join('')}
+                `
+              }
+              return ''
+            }).join('')}
         </div>
 
         <!-- PDF Notice -->
@@ -83,7 +88,7 @@ NOUVEAU FORMULAIRE DE GARANT REÇU - ALV IMMOBILIER
 
 RÉSUMÉ GÉNÉRAL :
 - Nombre de garants : ${garants.length}
-- Nombre de cautionnés : ${cautionnes.length}
+- Nombre de locataires concernés : ${garants.filter(g => g.locataireConcerneNom || g.locataireConcernePrenom).length}
 - Date de soumission : ${new Date().toLocaleString('fr-FR')}
 
 GARANT(S) :
@@ -100,13 +105,18 @@ Garant ${index + 1} :
 - Salaire : ${garant.salaire ? garant.salaire + ' €' : '-'}
 `).join('\n')}
 
-PERSONNE(S) CAUTIONNÉE(S) :
-${cautionnes.map((cautionne, index) => `
-Cautionné ${index + 1} :
-- Nom : ${cautionne.prenom} ${cautionne.nom}
-- Email : ${cautionne.email || '-'}
-- Téléphone : ${cautionne.telephone || '-'}
-`).join('\n')}
+LOCATAIRE(S) CONCERNÉ(S) :
+${garants.map((garant, index) => {
+  if (garant.locataireConcerneNom || garant.locataireConcernePrenom) {
+    return `
+Locataire concerné par le garant ${index + 1} :
+- Nom : ${garant.locataireConcernePrenom || ''} ${garant.locataireConcerneNom || ''}
+- Email : ${garant.locataireConcerneEmail || '-'}
+- Téléphone : ${garant.locataireConcerneTelephone || '-'}
+`
+  }
+  return ''
+}).join('\n')}
 
 PDF COMPLET JOINT
   `.trim()

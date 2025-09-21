@@ -3,6 +3,7 @@
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Check } from "lucide-react"
+import { DatePicker } from "@/components/date-picker"
 
 interface FormFieldProps {
   label: string
@@ -79,6 +80,16 @@ export function FormField({
                     ))}
                   </SelectContent>
                 </Select>
+              ) : type === 'date' ? (
+                <DatePicker
+                  value={value}
+                  onChange={(newValue) => {
+                    onChange(newValue)
+                    onBlur()
+                  }}
+                  placeholder={placeholder}
+                  className="h-8"
+                />
               ) : (
                 <Input
                   type={type}

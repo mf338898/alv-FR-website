@@ -56,6 +56,11 @@ const createEmptyLocataire = (): Locataire => ({
   situationActuelleSansEmploi: "",
   origineRevenuPrincipal: "",
   origineRevenuPrincipalAutre: "",
+  informationsComplementaires: "",
+  locataireConcerneNom: "",
+  locataireConcernePrenom: "",
+  locataireConcerneEmail: "",
+  locataireConcerneTelephone: "",
 })
 
 // Créer des critères de recherche vides
@@ -72,119 +77,23 @@ const createEmptyCriteres = (): CriteresRecherche => ({
 
 // Créer des garanties vides
 const createEmptyGaranties = (): Garanties => ({
-  garantFamilial: "non",
-  garantieVisale: "non",
+  garantFamilial: "",
+  garantieVisale: "",
   precisionGarant: "",
   garants: [],
 })
 
-// Créer le 1er locataire prérempli pour les tests
-const createTestLocataire1 = (): Locataire => ({
-  nom: "Dubois",
-  prenom: "Claire",
-  civilite: "Madame",
-  situationConjugale: "Marié(e)",
-  adresseActuelle: "15 Rue des Lilas, 75012 Paris",
-  telephone: "0123456789",
-  email: "claire.dubois@example.com",
-  dateNaissance: "1990-04-15",
-  lieuNaissance: "Paris",
-  situationActuelle: "Locataire",
-  preavisADeposer: "2 mois",
-  dureePreavise: "",
-  dureePreaviseAutre: "",
-  hebergeParQui: "",
-  profession: "Graphiste",
-  etablissementFormation: "",
-  employeurNom: "Studio Créatif Paris",
-  employeurAdresse: "28 Avenue de la République, 75011 Paris",
-  employeurTelephone: "0145678901",
-  dateEmbauche: "2021-06-01",
-  typeContrat: "CDI",
-  salaire: "3200",
-  revenusAdditionnels: [],
-  dateFinContrat: "",
-  dureeInscriptionInterim: "",
-  agenceInterim: "",
-  dateDebutActivite: "",
-  regimeRetraite: "",
-  dateDebutRetraite: "",
-  alternance: "",
-  typeAlternance: "",
-  situationActuelleSansEmploi: "",
-  origineRevenuPrincipal: "",
-  origineRevenuPrincipalAutre: "",
-})
-
-// Créer le 2ème locataire prérempli pour les tests
-const createTestLocataire2 = (): Locataire => ({
-  nom: "Dubois",
-  prenom: "Marc",
-  civilite: "Monsieur",
-  situationConjugale: "Marié(e)",
-  adresseActuelle: "15 Rue des Lilas, 75012 Paris",
-  telephone: "0123456790",
-  email: "marc.dubois@example.com",
-  dateNaissance: "1988-09-22",
-  lieuNaissance: "Lyon",
-  situationActuelle: "Locataire",
-  preavisADeposer: "2 mois",
-  dureePreavise: "",
-  dureePreaviseAutre: "",
-  hebergeParQui: "",
-  profession: "Développeur",
-  etablissementFormation: "",
-  employeurNom: "TechStart SAS",
-  employeurAdresse: "42 Boulevard Haussmann, 75009 Paris",
-  employeurTelephone: "0145678902",
-  dateEmbauche: "2020-03-15",
-  typeContrat: "CDI",
-  salaire: "4500",
-  revenusAdditionnels: [],
-  dateFinContrat: "",
-  dureeInscriptionInterim: "",
-  agenceInterim: "",
-  dateDebutActivite: "",
-  regimeRetraite: "",
-  dateDebutRetraite: "",
-  alternance: "",
-  typeAlternance: "",
-  situationActuelleSansEmploi: "",
-  origineRevenuPrincipal: "",
-  origineRevenuPrincipalAutre: "",
-})
-
-// Créer des critères de recherche préremplis
-const createTestCriteres = (): CriteresRecherche => ({
-  nombreChambres: "3",
-  secteurSouhaite: "Paris 11ème, 12ème ou 20ème",
-  rayonKm: "5",
-  dateEmmenagement: "2025-02-01",
-  preavisADeposer: "2 mois",
-  raisonDemenagement: "Besoin de plus d'espace pour la famille",
-  informationsComplementaires: "Recherche un logement proche des transports en commun",
-  loyerMax: "1800",
-})
-
-// Créer des garanties préremplies
-const createTestGaranties = (): Garanties => ({
-  garantFamilial: "oui",
-  garantieVisale: "non",
-  precisionGarant: "Parents de Claire peuvent se porter garants",
-  garants: [],
-})
 
 export default function LocataireFormPage() {
   const router = useRouter()
   const [locataires, setLocataires] = useState<Locataire[]>([
-    createTestLocataire1(),
-    createTestLocataire2()
+    createEmptyLocataire()
   ])
-  const [nombreEnfantsFoyer, setNombreEnfantsFoyer] = useState<number>(1)
-  const [criteresRecherche, setCriteresRecherche] = useState<CriteresRecherche>(createTestCriteres())
-  const [garanties, setGaranties] = useState<Garanties>(createTestGaranties())
-  const [bienConcerne, setBienConcerne] = useState<string>("Appartement T3 - 75m² - Paris 11ème")
-  const [veutRemplirRecherche, setVeutRemplirRecherche] = useState<string>("oui")
+  const [nombreEnfantsFoyer, setNombreEnfantsFoyer] = useState<number>(0)
+  const [criteresRecherche, setCriteresRecherche] = useState<CriteresRecherche>(createEmptyCriteres())
+  const [garanties, setGaranties] = useState<Garanties>(createEmptyGaranties())
+  const [bienConcerne, setBienConcerne] = useState<string>("")
+  const [veutRemplirRecherche, setVeutRemplirRecherche] = useState<string>("")
   
   const [editingField, setEditingField] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -473,8 +382,8 @@ export default function LocataireFormPage() {
           <Button
             onClick={handleSubmit}
             size="lg"
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
-            disabled={isSubmitting}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+            disabled={isSubmitting || !isFormComplete()}
           >
             <Send className="h-5 w-5" />
             {isSubmitting ? "Envoi en cours..." : "Envoyer le formulaire"}
