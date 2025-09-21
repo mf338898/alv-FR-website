@@ -233,7 +233,6 @@ function contractOrStatus(loc?: Locataire) {
 }
 
 function identityRows(l?: Locataire): Row[] {
-  const [addr1, addr2] = splitAddressLines(l?.adresseActuelle)
   const date = formatDateFR(l?.dateNaissance)
   const lieu = formatLieuNaissance(l?.lieuNaissance)
   const dateLieu =
@@ -247,8 +246,7 @@ function identityRows(l?: Locataire): Row[] {
     { label: "Date et lieu de naissance", value: pdfSafe(dateLieu) },
     { label: "Email", value: pdfSafe(showOrDash(l?.email)) },
     { label: "Téléphone", value: pdfSafe(showOrDash(l?.telephone)) },
-    { label: "Domicile (ligne 1)", value: pdfSafe(addr1) },
-    { label: "Domicile (ligne 2)", value: pdfSafe(addr2) },
+    { label: "Domicile", value: pdfSafe(showOrDash(l?.adresseActuelle)) },
     { label: "Situation conjugale", value: pdfSafe(showOrDash(l?.situationConjugale)) },
   ]
 }
