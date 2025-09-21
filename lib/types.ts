@@ -40,7 +40,6 @@ export interface Locataire {
   situationActuelleSansEmploi: string
   origineRevenuPrincipal: string
   origineRevenuPrincipalAutre: string
-  informationsComplementaires: string
   locataireConcerneNom: string
   locataireConcernePrenom: string
   locataireConcerneEmail: string

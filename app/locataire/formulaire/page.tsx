@@ -56,7 +56,6 @@ const createEmptyLocataire = (): Locataire => ({
   situationActuelleSansEmploi: "",
   origineRevenuPrincipal: "",
   origineRevenuPrincipalAutre: "",
-  informationsComplementaires: "",
   locataireConcerneNom: "",
   locataireConcernePrenom: "",
   locataireConcerneEmail: "",

@@ -52,10 +52,6 @@ export function LocataireCard({
   ]
 
 
-  // Champs pour les informations complémentaires
-  const complementaryFields = [
-    { key: "informationsComplementaires", label: "Informations complémentaires", type: "text" as const, placeholder: "Informations supplémentaires (facultatif)" }
-  ]
 
   return (
     <div className="bg-white border border-gray-300 rounded-lg shadow-sm">
@@ -121,16 +117,6 @@ export function LocataireCard({
       />
 
 
-      {/* Section Informations complémentaires */}
-      <FormSection
-        title="Informations complémentaires"
-        fields={complementaryFields}
-        data={locataire}
-        editingField={editingField}
-        onFieldChange={onFieldChange}
-        onFieldEdit={onFieldEdit}
-        onFieldBlur={onFieldBlur}
-      />
     </div>
   )
 }

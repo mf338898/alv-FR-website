@@ -11,7 +11,7 @@ interface FormSectionProps {
     placeholder?: string
     options?: string[]
   }>
-  data: Record<string, string>
+  data: Record<string, any>
   editingField: string | null
   onFieldChange: (key: string, value: string) => void
   onFieldEdit: (key: string) => void
@@ -41,11 +41,11 @@ export function FormSection({
           onChange={(value) => onFieldChange(field.key, value)}
           onEdit={() => onFieldEdit(field.key)}
           onBlur={onFieldBlur}
-          isEditing={editingField === field.key || editingField?.endsWith(`_${field.key}`)}
+          isEditing={editingField === field.key || (editingField && editingField.endsWith(`_${field.key}`)) || false}
           type={field.type}
           placeholder={field.placeholder}
           options={field.options}
-          autoFocus={editingField === field.key || editingField?.endsWith(`_${field.key}`)}
+          autoFocus={editingField === field.key || (editingField && editingField.endsWith(`_${field.key}`)) || false}
         />
       ))}
     </div>

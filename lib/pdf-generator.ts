@@ -250,7 +250,6 @@ function identityRows(l?: Locataire): Row[] {
     { label: "Domicile (ligne 1)", value: pdfSafe(addr1) },
     { label: "Domicile (ligne 2)", value: pdfSafe(addr2) },
     { label: "Situation conjugale", value: pdfSafe(showOrDash(l?.situationConjugale)) },
-    { label: "Informations complémentaires", value: pdfSafe(showOrDash(l?.informationsComplementaires)) },
   ]
 }
 
