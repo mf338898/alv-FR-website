@@ -57,6 +57,7 @@ export async function POST(request: Request) {
     // Envoyer l'email avec les PDFs en pièces jointes
     await sendMail({
       to: process.env.RECIPIENT_EMAIL || 'contact@alvimobilier.bzh',
+      cc: formData.locataires[0]?.email || undefined, // Copie à l'utilisateur
       subject: `Nouveau formulaire locataire - ${formData.locataires[0]?.nom} ${formData.locataires[0]?.prenom}`,
       html: emailHTML,
       attachments: attachments

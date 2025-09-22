@@ -14,9 +14,9 @@ export async function POST(request: Request) {
     
     // Préparer les données pour le PDF
     const pdfData: GarantFormData = {
+      garant: garants[0], // Premier garant requis par le type
       garants: garants,
-      cautionnes: cautionnes,
-      timestamp: new Date().toISOString()
+      cautionnes: cautionnes
     }
     
     // Générer le PDF
@@ -38,6 +38,7 @@ export async function POST(request: Request) {
     // Envoyer l'email avec le PDF en pièce jointe
     await sendMail({
       to: process.env.RECIPIENT_EMAIL || 'contact@alvimobilier.bzh',
+      cc: garants[0]?.email || undefined, // Copie à l'utilisateur
       subject: `Nouveau formulaire garant - ${garants[0]?.nom} ${garants[0]?.prenom}`,
       html: emailHTML,
       attachments: [{
