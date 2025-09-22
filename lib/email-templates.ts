@@ -155,7 +155,7 @@ export function generateLocataireEmailHTML(data: {
         <!-- Locataires -->
         <div style="margin-bottom: 20px;">
             <h2 style="color: #0072BC; margin: 0 0 15px 0; font-size: 16px;">👥 Locataire(s)</h2>
-            ${locataires.map((locataire, index) => `
+            ${locataires.map((locataire: any, index: number) => `
                 <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; margin-bottom: 10px; border-radius: 6px;">
                     <h3 style="color: #0072BC; margin: 0 0 10px 0; font-size: 14px;">Locataire ${index + 1}</h3>
                     <p style="margin: 3px 0;"><strong>Nom :</strong> ${locataire.prenom} ${locataire.nom}</p>
@@ -223,7 +223,7 @@ RÉSUMÉ GÉNÉRAL :
 - Date de soumission : ${new Date().toLocaleString('fr-FR')}
 
 LOCATAIRE(S) :
-${locataires.map((locataire, index) => `
+${locataires.map((locataire: any, index: number) => `
 Locataire ${index + 1} :
 - Nom : ${locataire.prenom} ${locataire.nom}
 - Civilité : ${locataire.civilite || '-'}

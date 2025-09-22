@@ -72,7 +72,7 @@ export default function GarantFormPage() {
 
 
   // Fonction pour mettre à jour un champ d'un garant
-  const updateGarantField = (index: number, field: keyof Locataire, value: string) => {
+  const updateGarantField = (index: number, field: string, value: string) => {
     setGarants(prev => prev.map((garant, i) => 
       i === index ? { ...garant, [field]: value } : garant
     ))

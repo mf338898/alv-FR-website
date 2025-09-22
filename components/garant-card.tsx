@@ -11,8 +11,8 @@ interface GarantCardProps {
   garant: Locataire
   garantIndex: number
   editingField: string | null
-  onFieldChange: (field: keyof Locataire, value: string) => void
-  onFieldEdit: (field: keyof Locataire) => void
+  onFieldChange: (field: string, value: string) => void
+  onFieldEdit: (field: string) => void
   onFieldBlur: () => void
   onRemove: () => void
   canRemove: boolean

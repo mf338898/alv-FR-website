@@ -76,8 +76,8 @@ const createEmptyCriteres = (): CriteresRecherche => ({
 
 // Créer des garanties vides
 const createEmptyGaranties = (): Garanties => ({
-  garantFamilial: "",
-  garantieVisale: "",
+  garantFamilial: "non",
+  garantieVisale: "non",
   precisionGarant: "",
   garants: [],
 })
@@ -109,9 +109,10 @@ export default function LocataireFormPage() {
     ]
 
     const locatairesComplete = locataires.every(locataire => 
-      requiredFields.every(field => 
-        locataire[field] && locataire[field]!.trim() !== ''
-      )
+      requiredFields.every(field => {
+        const value = locataire[field]
+        return value && (typeof value === 'string' ? value.trim() !== '' : true)
+      })
     )
 
     // Vérifier les critères de recherche si demandés
