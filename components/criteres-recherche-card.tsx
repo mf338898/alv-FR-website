@@ -62,6 +62,7 @@ export function CriteresRechercheCard({
         onFieldEdit={onFieldEdit}
         onFieldBlur={onFieldBlur}
         isFieldMissing={isFieldMissing}
+        fieldPrefix="criteres_"
       />
     </div>
   )

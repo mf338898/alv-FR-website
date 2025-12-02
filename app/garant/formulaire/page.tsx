@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import {
 import type { Locataire, GarantContact } from "@/lib/types"
 import { LoadingOverlay } from "@/components/loading-overlay"
 import { GarantCard } from "@/components/garant-card"
+import ErrorMessage from "@/components/error-message"
 
 // Créer un garant vide
 const createEmptyGarant = (): Locataire => ({
@@ -69,10 +70,11 @@ export default function GarantFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [showValidationErrors, setShowValidationErrors] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
 
   // Fonction pour mettre à jour un champ d'un garant
-  const updateGarantField = (index: number, field: string, value: string) => {
+  const updateGarantField = useCallback((index: number, field: string, value: string) => {
     setGarants(prev => prev.map((garant, i) => 
       i === index ? { ...garant, [field]: value } : garant
     ))
@@ -80,17 +82,29 @@ export default function GarantFormPage() {
     if (showValidationErrors) {
       setShowValidationErrors(false)
     }
-  }
+  }, [showValidationErrors])
+
+  // Fonctions mémorisées pour les gestionnaires de champs des garants
+  const createGarantFieldHandlers = useMemo(() => {
+    return (index: number) => ({
+      onChange: (field: string, value: string) => updateGarantField(index, field, value),
+      onEdit: (field: string) => setEditingField(`garant_${index}_${field}`),
+      onBlur: () => setEditingField(null)
+    })
+  }, [updateGarantField])
 
   // Fonction pour ajouter un garant
   const addGarant = () => {
     setGarants(prev => [...prev, createEmptyGarant()])
+    setEditingField(null) // Réinitialiser l'état d'édition
+    toast.success(`Garant ${garants.length + 1} ajouté !`)
   }
 
   // Fonction pour supprimer un garant
   const removeGarant = (index: number) => {
     if (garants.length > 1) {
       setGarants(prev => prev.filter((_, i) => i !== index))
+      toast.success(`Garant ${index + 1} supprimé !`)
     }
   }
 
@@ -129,6 +143,8 @@ export default function GarantFormPage() {
     }
 
     setIsSubmitting(true)
+    setErrorMessage(null) // Effacer toute erreur précédente
+    
     try {
       const formData = {
         garants,
@@ -144,15 +160,17 @@ export default function GarantFormPage() {
         body: JSON.stringify(formData),
       })
 
-      if (response.ok) {
+      const result = await response.json()
+
+      if (result.success) {
         setIsSuccess(true)
         // Ne plus rediriger vers la page de confirmation
       } else {
-        throw new Error('Erreur lors de l\'envoi')
+        setErrorMessage("Une erreur s'est produite lors de l'envoi. Veuillez réessayer.")
       }
     } catch (error) {
-      toast.error("Erreur lors de l'envoi du formulaire")
       console.error(error)
+      setErrorMessage("Une erreur s'est produite lors de l'envoi. Veuillez réessayer.")
     } finally {
       setIsSubmitting(false)
     }
@@ -165,6 +183,14 @@ export default function GarantFormPage() {
         isSuccess={isSuccess}
         onClose={() => router.push('/')}
       />
+      
+      {/* Message d'erreur */}
+      {errorMessage && (
+        <ErrorMessage 
+          message={errorMessage}
+          onClose={() => setErrorMessage(null)}
+        />
+      )}
       
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 pt-safe">
@@ -206,20 +232,23 @@ export default function GarantFormPage() {
 
       <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
         {/* Formulaire pour chaque garant */}
-        {garants.map((garant, garantIndex) => (
-          <GarantCard
-            key={garantIndex}
-            garant={garant}
-            garantIndex={garantIndex}
-            editingField={editingField}
-            onFieldChange={(field, value) => updateGarantField(garantIndex, field, value)}
-            onFieldEdit={(field) => setEditingField(field)}
-            onFieldBlur={() => setEditingField(null)}
-            onRemove={() => removeGarant(garantIndex)}
-            canRemove={garants.length > 1}
-            showValidationErrors={showValidationErrors}
-          />
-        ))}
+        {garants.map((garant, garantIndex) => {
+          const handlers = createGarantFieldHandlers(garantIndex)
+                      return (
+            <GarantCard
+              key={`garant-${garantIndex}`}
+              garant={garant}
+              garantIndex={garantIndex}
+              editingField={editingField}
+              onFieldChange={handlers.onChange}
+              onFieldEdit={handlers.onEdit}
+              onFieldBlur={handlers.onBlur}
+              onRemove={() => removeGarant(garantIndex)}
+              canRemove={garants.length > 1}
+              showValidationErrors={showValidationErrors}
+            />
+          )
+        })}
 
         {/* Boutons d'action */}
         <div className="flex flex-col items-center gap-4 pt-6">

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -19,6 +19,7 @@ import { LoadingOverlay } from "@/components/loading-overlay"
 import { LocataireCard } from "@/components/locataire-card"
 import { CriteresRechercheCard } from "@/components/criteres-recherche-card"
 import { GarantiesCard } from "@/components/garanties-card"
+import ErrorMessage from "@/components/error-message"
 
 // Créer un locataire vide
 const createEmptyLocataire = (): Locataire => ({
@@ -98,6 +99,7 @@ export default function LocataireFormPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [showValidationErrors, setShowValidationErrors] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   // Fonction pour vérifier si le formulaire est complet
   const isFormComplete = () => {
@@ -133,7 +135,7 @@ export default function LocataireFormPage() {
     return locatairesComplete && criteresComplete && garantiesComplete && bienConcerne
   }
 
-  const handleFieldChange = (field: string, value: string) => {
+  const handleFieldChange = useCallback((field: string, value: string) => {
     // Remettre showValidationErrors à false quand l'utilisateur modifie un champ
     if (showValidationErrors) {
       setShowValidationErrors(false)
@@ -178,23 +180,35 @@ export default function LocataireFormPage() {
       setGaranties(prev => ({ ...prev, [garantieField]: value }))
       return
     }
-  }
+  }, [showValidationErrors])
 
-  const handleFieldEdit = (field: string) => {
+  const handleFieldEdit = useCallback((field: string) => {
     setEditingField(field)
-  }
+  }, [])
 
-  const handleFieldBlur = () => {
+  const handleFieldBlur = useCallback(() => {
     setEditingField(null)
-  }
+  }, [])
+
+  // Fonctions mémorisées pour les gestionnaires de champs des locataires
+  const createLocataireFieldHandlers = useMemo(() => {
+    return (index: number) => ({
+      onChange: (field: string, value: string) => handleFieldChange(`locataire_${index}_${field}`, value),
+      onEdit: (field: string) => handleFieldEdit(`locataire_${index}_${field}`),
+      onBlur: handleFieldBlur
+    })
+  }, [handleFieldChange, handleFieldEdit, handleFieldBlur])
 
   const addLocataire = () => {
     setLocataires(prev => [...prev, createEmptyLocataire()])
+    setEditingField(null) // Réinitialiser l'état d'édition
+    toast.success(`Locataire ${locataires.length + 1} ajouté !`)
   }
 
   const removeLocataire = (index: number) => {
     if (locataires.length > 1) {
       setLocataires(prev => prev.filter((_, i) => i !== index))
+      toast.success(`Locataire ${index + 1} supprimé !`)
     }
   }
 
@@ -206,6 +220,7 @@ export default function LocataireFormPage() {
     }
 
     setIsSubmitting(true)
+    setErrorMessage(null) // Effacer toute erreur précédente
     
     try {
       const formData: AppFormData = {
@@ -232,11 +247,11 @@ export default function LocataireFormPage() {
         setIsSuccess(true)
         // Ne plus rediriger vers la page de confirmation
       } else {
-        toast.error("Erreur lors de l'envoi du formulaire")
+        setErrorMessage("Une erreur s'est produite lors de l'envoi. Veuillez réessayer.")
       }
     } catch (error) {
       console.error('Erreur:', error)
-      toast.error("Erreur lors de l'envoi du formulaire")
+      setErrorMessage("Une erreur s'est produite lors de l'envoi. Veuillez réessayer.")
     } finally {
       setIsSubmitting(false)
     }
@@ -249,6 +264,14 @@ export default function LocataireFormPage() {
         isSuccess={isSuccess}
         onClose={() => router.push('/')}
       />
+      
+      {/* Message d'erreur */}
+      {errorMessage && (
+        <ErrorMessage 
+          message={errorMessage}
+          onClose={() => setErrorMessage(null)}
+        />
+      )}
       
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 pt-safe">
@@ -339,20 +362,23 @@ export default function LocataireFormPage() {
             </Button>
           </div>
 
-          {locataires.map((locataire, index) => (
-            <LocataireCard
-              key={index}
-              locataire={locataire}
-              locataireIndex={index}
-              editingField={editingField}
-              onFieldChange={(field, value) => handleFieldChange(`locataire_${index}_${field}`, value)}
-              onFieldEdit={(field) => handleFieldEdit(`locataire_${index}_${field}`)}
-              onFieldBlur={handleFieldBlur}
-              onRemove={() => removeLocataire(index)}
-              canRemove={locataires.length > 1}
-              showValidationErrors={showValidationErrors}
-            />
-          ))}
+          {locataires.map((locataire, index) => {
+            const handlers = createLocataireFieldHandlers(index)
+            return (
+              <LocataireCard
+                key={`locataire-${index}`}
+                locataire={locataire}
+                locataireIndex={index}
+                editingField={editingField}
+                onFieldChange={handlers.onChange}
+                onFieldEdit={handlers.onEdit}
+                onFieldBlur={handlers.onBlur}
+                onRemove={() => removeLocataire(index)}
+                canRemove={locataires.length > 1}
+                showValidationErrors={showValidationErrors}
+              />
+            )
+          })}
         </div>
 
         {/* Critères de recherche */}

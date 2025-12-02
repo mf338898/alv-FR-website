@@ -121,6 +121,7 @@ export function LocataireCard({
         onFieldEdit={onFieldEdit}
         onFieldBlur={onFieldBlur}
         isFieldMissing={isFieldMissing}
+        fieldPrefix={`locataire_${locataireIndex}_`}
       />
 
       {/* Section Professionnel */}
@@ -133,6 +134,7 @@ export function LocataireCard({
         onFieldEdit={onFieldEdit}
         onFieldBlur={onFieldBlur}
         isFieldMissing={isFieldMissing}
+        fieldPrefix={`locataire_${locataireIndex}_`}
       />
 
 

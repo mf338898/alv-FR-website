@@ -17,6 +17,7 @@ interface FormSectionProps {
   onFieldEdit: (key: string) => void
   onFieldBlur: () => void
   isFieldMissing?: (field: string) => boolean
+  fieldPrefix?: string // Nouveau prop pour le préfixe des champs
 }
 
 export function FormSection({
@@ -27,7 +28,8 @@ export function FormSection({
   onFieldChange,
   onFieldEdit,
   onFieldBlur,
-  isFieldMissing
+  isFieldMissing,
+  fieldPrefix = ""
 }: FormSectionProps) {
   return (
     <div className="border-b border-gray-300">
@@ -43,11 +45,11 @@ export function FormSection({
           onChange={(value) => onFieldChange(field.key, value)}
           onEdit={() => onFieldEdit(field.key)}
           onBlur={onFieldBlur}
-          isEditing={editingField === field.key || (editingField && editingField.endsWith(`_${field.key}`)) || false}
+          isEditing={editingField === `${fieldPrefix}${field.key}` || false}
           type={field.type}
           placeholder={field.placeholder}
           options={field.options}
-          autoFocus={editingField === field.key || (editingField && editingField.endsWith(`_${field.key}`)) || false}
+          autoFocus={editingField === `${fieldPrefix}${field.key}` || false}
           isMissing={isFieldMissing?.(field.key) || false}
         />
       ))}

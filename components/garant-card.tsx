@@ -135,6 +135,7 @@ export function GarantCard({
             onFieldEdit={onFieldEdit}
             onFieldBlur={onFieldBlur}
             isFieldMissing={isFieldMissing}
+            fieldPrefix={`garant_${garantIndex}_`}
           />
 
           <FormSection
@@ -146,6 +147,7 @@ export function GarantCard({
             onFieldEdit={onFieldEdit}
             onFieldBlur={onFieldBlur}
             isFieldMissing={isFieldMissing}
+            fieldPrefix={`garant_${garantIndex}_`}
           />
 
           <FormSection
@@ -157,6 +159,7 @@ export function GarantCard({
             onFieldEdit={onFieldEdit}
             onFieldBlur={onFieldBlur}
             isFieldMissing={isFieldMissing}
+            fieldPrefix={`garant_${garantIndex}_`}
           />
 
           <FormSection
@@ -168,6 +171,7 @@ export function GarantCard({
             onFieldEdit={onFieldEdit}
             onFieldBlur={onFieldBlur}
             isFieldMissing={isFieldMissing}
+            fieldPrefix={`garant_${garantIndex}_`}
           />
 
           <FormSection
@@ -179,6 +183,7 @@ export function GarantCard({
             onFieldEdit={onFieldEdit}
             onFieldBlur={onFieldBlur}
             isFieldMissing={isFieldMissing}
+            fieldPrefix={`garant_${garantIndex}_`}
           />
         </div>
       </CardContent>

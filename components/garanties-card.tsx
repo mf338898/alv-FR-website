@@ -57,6 +57,7 @@ export function GarantiesCard({
         onFieldEdit={onFieldEdit}
         onFieldBlur={onFieldBlur}
         isFieldMissing={isFieldMissing}
+        fieldPrefix="garanties_"
       />
     </div>
   )
