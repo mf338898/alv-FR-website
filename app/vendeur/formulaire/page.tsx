@@ -2985,7 +2985,13 @@ export default function VendeurFormPage() {
         )}
 
         {state.type === "societe" && (
-          <SocieteSection data={state.societe} onChange={(data) => setState((prev) => ({ ...prev, societe: data }))} />
+          <SocieteSection
+            data={state.societe}
+            onChange={(data) => setState((prev) => ({ ...prev, societe: data }))}
+            showValidationErrors={showValidationErrors}
+            missing={missingFields}
+            pathPrefix="societe"
+          />
         )}
 
         {state.type === "entreprise_individuelle" && (
