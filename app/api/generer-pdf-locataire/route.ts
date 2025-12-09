@@ -131,11 +131,28 @@ export async function POST(request: Request) {
       mailOk = false
     }
     
-    if (mailOk) {
-      logger.info('Email avec PDF envoyé avec succès pour le formulaire locataire')
-    } else {
-      logger.warn('Email non envoyé (config SMTP absente ou erreur), génération PDF/CSV OK')
+    if (!mailOk) {
+      logger.error('Email non envoyé (config SMTP absente ou erreur), génération PDF/CSV OK', {
+        hasGmailUser: !!process.env.GMAIL_USER,
+        hasGmailPass: !!process.env.GMAIL_APP_PASSWORD,
+        recipientEmail: process.env.RECIPIENT_EMAIL || 'foveau16@gmail.com'
+      })
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Erreur lors de l\'envoi de l\'email. Veuillez vérifier la configuration SMTP sur Vercel.',
+          emailSent: false,
+          pdfGenerated: true,
+          filename: filename,
+          recherchePdfGenerated: recherchePdfBuffer ? true : false,
+          rechercheFilename: rechercheFilename,
+          timestamp: new Date().toISOString()
+        },
+        { status: 500 }
+      )
     }
+    
+    logger.info('Email avec PDF envoyé avec succès pour le formulaire locataire')
     
     return NextResponse.json({
       success: true,
@@ -144,7 +161,7 @@ export async function POST(request: Request) {
       filename: filename,
       recherchePdfGenerated: recherchePdfBuffer ? true : false,
       rechercheFilename: rechercheFilename,
-      emailSent: !!mailOk,
+      emailSent: true,
       timestamp: new Date().toISOString()
     })
   } catch (error) {

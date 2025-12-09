@@ -530,14 +530,38 @@ export async function POST(request: Request) {
       ...csvAttachments,
     ]
 
-    await sendMail({
-      to: process.env.RECIPIENT_EMAIL || "foveau16@gmail.com",
-      cc: ccList,
-      subject: buildVendeurSubject(body),
-      html,
-      attachments,
-      fromName: "ALV Immobilier",
-    })
+    // Envoyer l'email avec les PDFs en pièces jointes
+    let mailOk = false
+    try {
+      mailOk = await sendMail({
+        to: process.env.RECIPIENT_EMAIL || "foveau16@gmail.com",
+        cc: ccList,
+        subject: buildVendeurSubject(body),
+        html,
+        attachments,
+        fromName: "ALV Immobilier",
+      })
+    } catch (e: any) {
+      logger.error("sendMail: exception", e)
+      mailOk = false
+    }
+
+    if (!mailOk) {
+      logger.warn("Email non envoyé (config SMTP absente ou erreur), génération PDF/CSV OK")
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Erreur lors de l'envoi de l'email. Veuillez vérifier la configuration SMTP.",
+          emailSent: false,
+          pdfGenerated: true,
+          filename,
+          csvGenerated: csvAttachments.length > 0,
+          csvCount: csvAttachments.length,
+          timestamp: new Date().toISOString(),
+        },
+        { status: 500 }
+      )
+    }
 
     logger.info("Email envoyé avec PDF propriétaire et CSV", {
       filename,
@@ -551,6 +575,7 @@ export async function POST(request: Request) {
       filename,
       csvGenerated: csvAttachments.length > 0,
       csvCount: csvAttachments.length,
+      emailSent: true,
       timestamp: new Date().toISOString(),
     })
   } catch (error) {

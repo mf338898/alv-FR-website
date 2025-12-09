@@ -2247,10 +2247,30 @@ export default function ProprietaireFormPage() {
         },
         body: JSON.stringify(payload),
       })
-      const result = await response.json()
-      if (result?.success) {
+      let result
+      try {
+        result = await response.json()
+      } catch (e) {
+        console.error('Erreur parsing JSON:', e)
+        setErrorMessage("Erreur lors de la lecture de la réponse du serveur.")
+        toast.error("Erreur lors de l'envoi.")
+        return
+      }
+
+      if (!response.ok) {
+        const detail = result?.error || result?.details || `Erreur serveur (${response.status})`
+        setErrorMessage(detail)
+        toast.error("Erreur lors de l'envoi.")
+        console.error('Erreur serveur:', result)
+        return
+      }
+
+      if (result?.success && result?.emailSent) {
         setIsSuccess(true)
         toast.success("Formulaire propriétaire envoyé à l'agence.")
+      } else if (result?.success && !result?.emailSent) {
+        setErrorMessage("Le formulaire a été généré mais l'email n'a pas pu être envoyé. Veuillez contacter l'agence.")
+        toast.error("Erreur lors de l'envoi de l'email.")
       } else {
         setErrorMessage(result?.error || "Une erreur est survenue.")
         toast.error("Erreur lors de l'envoi.")

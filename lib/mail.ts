@@ -118,7 +118,12 @@ export async function sendMail(params: {
 }): Promise<boolean> {
   const { config, missing } = resolveSmtpConfig()
   if (!config) {
-    logger.warn("sendMail: SMTP not configured", { missing })
+    logger.error("sendMail: SMTP not configured", { missing, env: {
+      hasGmailUser: !!process.env.GMAIL_USER,
+      hasGmailPass: !!process.env.GMAIL_APP_PASSWORD,
+      hasSmtpUser: !!process.env.SMTP_USER,
+      hasSmtpPass: !!process.env.SMTP_PASS,
+    }})
     return false
   }
 
@@ -138,8 +143,15 @@ export async function sendMail(params: {
       secure: config.secure,
       user: mask(config.user),
     })
-  } catch (error) {
-    logger.error("SMTP verify error", error)
+  } catch (error: any) {
+    logger.error("SMTP verify error", { 
+      error: error?.message || String(error),
+      code: error?.code,
+      command: error?.command,
+      host: config.host,
+      port: config.port,
+      user: mask(config.user)
+    })
     return false
   }
 
@@ -156,8 +168,15 @@ export async function sendMail(params: {
     const info = await transporter.sendMail(mailOptions)
     logger.info("Email sent", { messageId: info.messageId, to: mailOptions.to, cc: mailOptions.cc })
     return true
-  } catch (error) {
-    logger.error("sendMail: error sending mail", error)
+  } catch (error: any) {
+    logger.error("sendMail: error sending mail", {
+      error: error?.message || String(error),
+      code: error?.code,
+      responseCode: error?.responseCode,
+      response: error?.response,
+      to: mailOptions.to,
+      cc: mailOptions.cc
+    })
     return false
   }
 }

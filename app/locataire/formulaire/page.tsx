@@ -269,11 +269,29 @@ export default function LocataireFormPage() {
         body: JSON.stringify(formData),
       })
 
-      const result = await response.json()
+      let result
+      try {
+        result = await response.json()
+      } catch (e) {
+        console.error('Erreur parsing JSON:', e)
+        setErrorMessage("Erreur lors de la lecture de la réponse du serveur.")
+        return
+      }
 
-      if (result.success) {
+      if (!response.ok) {
+        // Si le status HTTP indique une erreur, afficher l'erreur même si success est true
+        const detail = result?.error || result?.details || `Erreur serveur (${response.status})`
+        setErrorMessage(detail)
+        console.error('Erreur serveur:', result)
+        return
+      }
+
+      if (result.success && result.emailSent) {
         setIsSuccess(true)
         // Ne plus rediriger vers la page de confirmation
+      } else if (result.success && !result.emailSent) {
+        const detail = "Le formulaire a été généré mais l'email n'a pas pu être envoyé. Veuillez contacter l'agence."
+        setErrorMessage(detail)
       } else {
         const detail = result?.details || result?.error || "Une erreur s'est produite lors de l'envoi. Veuillez réessayer."
         setErrorMessage(detail)

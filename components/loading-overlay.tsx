@@ -165,6 +165,35 @@ export function LoadingOverlay({
               >
                 Retour à l'accueil
               </button>
+              <p className="text-xs text-slate-500 text-center">
+                Suivez notre agence :{" "}
+                <a
+                  href="https://www.alvimmobilier.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-slate-700 transition-colors"
+                >
+                  🌐 Site ALV
+                </a>
+                {" · "}
+                <a
+                  href="https://www.instagram.com/alvimmobilier?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-slate-700 transition-colors"
+                >
+                  📸 Instagram
+                </a>
+                {" · "}
+                <a
+                  href="https://www.facebook.com/immobilierALV"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-slate-700 transition-colors"
+                >
+                  📘 Facebook
+                </a>
+              </p>
               <p className="text-xs text-slate-400 max-w-xs">
                 Vous pouvez fermer cette page en toute sécurité.
               </p>

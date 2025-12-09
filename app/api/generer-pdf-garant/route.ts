@@ -36,17 +36,38 @@ export async function POST(request: Request) {
     const emailText = generateGarantEmailText(emailData)
 
     // Envoyer l'email avec le PDF en pièce jointe
-    await sendMail({
-      to: process.env.RECIPIENT_EMAIL || 'foveau16@gmail.com',
-      cc: garants[0]?.email || undefined, // Copie à l'utilisateur
-      subject: `Nouveau formulaire garant - ${garants[0]?.nom} ${garants[0]?.prenom}`,
-      html: emailHTML,
-      attachments: [{
-        filename: filename,
-        content: pdfBuffer,
-        contentType: 'application/pdf'
-      }]
-    })
+    let mailOk = false
+    try {
+      mailOk = await sendMail({
+        to: process.env.RECIPIENT_EMAIL || 'foveau16@gmail.com',
+        cc: garants[0]?.email || undefined, // Copie à l'utilisateur
+        subject: `Nouveau formulaire garant - ${garants[0]?.nom} ${garants[0]?.prenom}`,
+        html: emailHTML,
+        attachments: [{
+          filename: filename,
+          content: pdfBuffer,
+          contentType: 'application/pdf'
+        }]
+      })
+    } catch (e: any) {
+      logger.error('sendMail: exception', e)
+      mailOk = false
+    }
+    
+    if (!mailOk) {
+      logger.warn('Email non envoyé (config SMTP absente ou erreur), génération PDF OK')
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Erreur lors de l\'envoi de l\'email. Veuillez vérifier la configuration SMTP.',
+          emailSent: false,
+          pdfGenerated: true,
+          filename: filename,
+          timestamp: new Date().toISOString()
+        },
+        { status: 500 }
+      )
+    }
     
     logger.info('Email avec PDF envoyé avec succès pour le formulaire garant')
     
@@ -55,6 +76,7 @@ export async function POST(request: Request) {
       message: 'Formulaire envoyé avec succès !',
       pdfGenerated: true,
       filename: filename,
+      emailSent: true,
       timestamp: new Date().toISOString()
     })
   } catch (error) {
