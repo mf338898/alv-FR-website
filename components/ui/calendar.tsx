@@ -19,7 +19,6 @@ function Calendar({
   showOutsideDays = true,
   captionLayout = 'buttons',
   buttonVariant = 'ghost',
-  formatters,
   components,
   ...props
 }: React.ComponentProps<typeof DayPicker> & {
@@ -37,11 +36,6 @@ function Calendar({
         className
       )}
       captionLayout={captionLayout}
-      formatters={{
-        formatMonthDropdown: date =>
-          date.toLocaleString('default', { month: 'short' }),
-        ...formatters,
-      }}
       classNames={{
         root: cn('w-fit', defaultClassNames.root),
         months: cn(
