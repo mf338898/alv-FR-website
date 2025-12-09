@@ -2642,7 +2642,7 @@ export default function AcquereurFormPage() {
       })
 
       const indivisionList = Array.from({ length: sellerCount }, (_, idx) => {
-        return [vendeur1, vendeur2, vendeur3][idx] || buildSamplePersonSeller(idx + 1, randomSituation)
+        return [vendeur1, vendeur2, vendeur3][idx] || buildSamplePersonBuyer(idx + 1, randomSituation)
       })
 
       return {
