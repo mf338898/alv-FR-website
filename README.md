@@ -54,7 +54,7 @@ cp .env.example .env.local
 # .env.local
 GMAIL_USER=votre-email@gmail.com
 GMAIL_APP_PASSWORD=votre-app-password
-RECIPIENT_EMAIL=email-destination@example.com
+RECIPIENT_EMAIL=foveau16@gmail.com  # tests; passer à contact@alvimmobilier.bzh en prod
 SMTP_FROM_NAME=ALV Immobilier
 ```
 

@@ -2,8 +2,11 @@
 
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Check } from "lucide-react"
+import { AlertCircle, Check } from "lucide-react"
 import { DatePicker } from "@/components/date-picker"
+import { cn } from "@/lib/utils"
+import { CommuneAutocompleteInput } from "./commune-autocomplete-input"
+import { AddressAutocompleteField } from "./address-autocomplete-field"
 
 interface FormFieldProps {
   label: string
@@ -12,11 +15,15 @@ interface FormFieldProps {
   onEdit: () => void
   onBlur: () => void
   isEditing: boolean
-  type: 'text' | 'email' | 'tel' | 'date' | 'number' | 'select'
+  type: "text" | "email" | "tel" | "date" | "number" | "select"
   placeholder?: string
   options?: string[]
   autoFocus?: boolean
   isMissing?: boolean
+  autoComplete?: string
+  fieldId?: string
+  communeAutocomplete?: boolean
+  addressAutocomplete?: boolean
 }
 
 export function FormField({
@@ -30,10 +37,14 @@ export function FormField({
   placeholder,
   options = [],
   autoFocus = false,
-  isMissing = false
+  isMissing = false,
+  autoComplete,
+  fieldId,
+  communeAutocomplete = false,
+  addressAutocomplete = false
 }: FormFieldProps) {
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (e.key === "Enter") {
       onBlur()
     }
   }
@@ -42,87 +53,119 @@ export function FormField({
     onBlur()
   }
 
-  const displayValue = () => {
-    if (value) {
-      if (type === 'number' && value) {
-        return `${value} €`
-      }
-      return value
-    }
-    return <span className="text-gray-400 italic">Cliquer pour {placeholder?.toLowerCase() || 'entrer'}</span>
+  const handleFocus = () => {
+    onEdit()
   }
 
-  const isFilled = value && value.trim() !== ''
+  const isFilled = typeof value === "string" ? value.trim() !== "" : !!value
+
+  const renderControl = () => {
+    if (type === "select") {
+      return (
+        <Select
+          value={value}
+          onValueChange={(newValue) => {
+            onChange(newValue)
+            onBlur()
+          }}
+        >
+          <SelectTrigger className="h-11" onFocus={handleFocus} onBlur={handleBlur}>
+            <SelectValue placeholder={`Sélectionner ${label.toLowerCase()}`} />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )
+    }
+
+    if (type === "date") {
+      return (
+        <div onFocusCapture={handleFocus} onBlurCapture={handleBlur}>
+          <DatePicker
+            value={value}
+            onChange={(newValue) => {
+              onChange(newValue)
+            }}
+            placeholder={placeholder}
+            className="h-9"
+          />
+        </div>
+      )
+    }
+
+    if (communeAutocomplete) {
+      return (
+        <CommuneAutocompleteInput
+          value={value}
+          onChange={(newVal) => onChange(newVal)}
+          placeholder={placeholder}
+          autoFocus={autoFocus}
+        />
+      )
+    }
+
+    if (addressAutocomplete) {
+      return (
+        <AddressAutocompleteField
+          value={value}
+          onChange={(newVal) => onChange(newVal)}
+          placeholder={placeholder}
+          autoFocus={autoFocus}
+        />
+      )
+    }
+
+    return (
+      <Input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+        onBlur={handleBlur}
+        onFocus={handleFocus}
+        placeholder={placeholder}
+        className="h-11"
+        autoFocus={autoFocus}
+        autoComplete={autoComplete}
+      />
+    )
+  }
 
   return (
-    <div className={`flex border-b min-h-[40px] ${isMissing ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}>
-      <div className={`w-2/5 sm:w-1/3 border-r px-2 sm:px-3 py-2 flex items-center text-xs sm:text-sm font-medium ${isMissing ? 'bg-red-100 border-red-300 text-red-700' : 'bg-gray-50 border-gray-300'}`}>
-        {label}
-      </div>
-      <div className="flex-1 px-2 sm:px-3 py-2 flex items-center justify-between">
-        <div className="flex-1">
-          {isEditing ? (
-            <>
-              {type === 'select' ? (
-                <Select 
-                  value={value} 
-                  onValueChange={(newValue) => {
-                    onChange(newValue)
-                    onBlur()
-                  }}
-                >
-                  <SelectTrigger className="h-8">
-                    <SelectValue placeholder={`Sélectionner ${label.toLowerCase()}`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {options.map((option) => (
-                      <SelectItem key={option} value={option}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : type === 'date' ? (
-                <DatePicker
-                  value={value}
-                  onChange={(newValue) => {
-                    onChange(newValue)
-                    onBlur()
-                  }}
-                  placeholder={placeholder}
-                  className="h-8"
-                />
-              ) : (
-                <Input
-                  type={type}
-                  value={value}
-                  onChange={(e) => onChange(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  onBlur={handleBlur}
-                  placeholder={placeholder}
-                  className="h-8"
-                  autoFocus={autoFocus}
-                />
-              )}
-            </>
-          ) : (
-            <div 
-              className="cursor-pointer hover:bg-gray-50 transition-colors py-1"
-              onClick={onEdit}
-            >
-              {displayValue()}
-            </div>
-          )}
+    <div
+      id={fieldId}
+      className={cn(
+        "rounded-lg border p-4 bg-white transition-all duration-200 shadow-sm",
+        isMissing && "border-rose-200 bg-rose-50 shadow-none",
+        isEditing && !isMissing && "border-blue-200 ring-2 ring-blue-100",
+        !isMissing && !isEditing && "border-slate-200 hover:border-slate-300"
+      )}
+    >
+      <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex items-center gap-2">
+          <label className="text-sm font-semibold text-slate-800">{label}</label>
+          {isMissing && <span className="w-2 h-2 rounded-full bg-rose-500" />}
         </div>
-        
-        {/* Badge vert pour les champs remplis */}
-        {isFilled && !isEditing && (
-          <div className="ml-2 sm:ml-3 flex items-center">
-            <div className="bg-green-100 text-green-700 px-1 sm:px-2 py-1 rounded-full text-xs font-medium flex items-center gap-1">
-              <Check className="h-3 w-3" />
-              <span className="hidden sm:inline">Rempli</span>
-            </div>
-          </div>
+        {isFilled && !isMissing && (
+          <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
+            <Check className="h-3.5 w-3.5" />
+            Rempli
+          </span>
+        )}
+      </div>
+
+      <div className="space-y-1.5">
+        {renderControl()}
+        {isMissing && (
+          <p className="text-xs text-rose-600 flex items-center gap-1">
+            <AlertCircle className="h-3.5 w-3.5" />
+            Champ requis
+          </p>
         )}
       </div>
     </div>

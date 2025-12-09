@@ -27,7 +27,14 @@ export interface Locataire {
   employeurTelephone: string
   dateEmbauche: string
   typeContrat: string
-  salaire: string
+  salaire?: string // Conservé pour compatibilité avec le formulaire garant
+  salaireNet: string
+  indemnitesChomage: string
+  aahAllocationsHandicap: string
+  rsa: string
+  pension: string
+  revenusAutoEntrepreneur: string
+  aidesAuLogement: string
   revenusAdditionnels: RevenuAdditionnel[]
   dateFinContrat: string
   dureeInscriptionInterim: string
@@ -47,6 +54,11 @@ export interface Locataire {
 }
 
 export interface CriteresRecherche {
+  rechercheType?: "location" | "achat" | "les_deux" | ""
+  typeBienAchat?: string
+  budgetAchat?: string
+  financementAchat?: string
+  banqueConsultee?: string
   nombreChambres: string
   secteurSouhaite: string
   rayonKm: string

@@ -140,7 +140,7 @@ export async function sendMail(params: {
     })
   } catch (error) {
     logger.error("SMTP verify error", error)
-    throw new Error("Error verifying SMTP server.")
+    return false
   }
 
   const mailOptions = {
@@ -152,9 +152,14 @@ export async function sendMail(params: {
     attachments: params.attachments as any,
   }
 
-  const info = await transporter.sendMail(mailOptions)
-  logger.info("Email sent", { messageId: info.messageId, to: mailOptions.to, cc: mailOptions.cc })
-  return true
+  try {
+    const info = await transporter.sendMail(mailOptions)
+    logger.info("Email sent", { messageId: info.messageId, to: mailOptions.to, cc: mailOptions.cc })
+    return true
+  } catch (error) {
+    logger.error("sendMail: error sending mail", error)
+    return false
+  }
 }
 
 // Export diagnostics to help debug configuration from an API route.

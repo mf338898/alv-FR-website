@@ -115,6 +115,8 @@ interface ModernFormFieldProps {
   helpText?: string
   children: ReactNode
   className?: string
+  isMissing?: boolean
+  fieldId?: string
 }
 
 export function ModernFormField({
@@ -123,19 +125,23 @@ export function ModernFormField({
   error,
   helpText,
   children,
-  className
+  className,
+  isMissing = false,
+  fieldId
 }: ModernFormFieldProps) {
   return (
-    <div className={cn("space-y-2", className)}>
-      <label className="block text-sm font-medium text-slate-700">
+    <div className={cn("space-y-2", className)} id={fieldId}>
+      <label className={cn("block text-sm font-medium", isMissing ? "text-red-700" : "text-slate-700")}>
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </label>
       
-      {children}
+      <div className={cn(isMissing && "rounded-lg border border-red-300 bg-red-50/60 p-2")}>
+        {children}
+      </div>
       
       {helpText && (
-        <p className="text-xs text-slate-500">{helpText}</p>
+        <p className={cn("text-xs", isMissing ? "text-red-600" : "text-slate-500")}>{helpText}</p>
       )}
       
       {error && (

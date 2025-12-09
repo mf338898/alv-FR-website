@@ -196,11 +196,12 @@ type RevenuFormatted = {
 }
 
 // Type Row modifié pour supporter le formatage spécial
-type Row = { 
-  label: string; 
-  value: string | string[] | RevenuFormatted[]; 
-  highlight?: boolean;
+type Row = {
+  label: string
+  value: string | string[] | RevenuFormatted[]
+  highlight?: boolean
   specialFormat?: 'revenus' // Indicateur pour le formatage spécial
+  valueBelowLabel?: boolean // Option pour forcer la valeur sur la ligne suivante du label
 }
 
 // "Sans emploi" precision handling
@@ -270,6 +271,37 @@ function revenusAdditionnelsLines(list?: RevenuAdditionnel[]): RevenuFormatted[]
 function proRows(l?: Locataire): Row[] {
   const [empAddr1, empAddr2] = splitAddressLines(l?.employeurAdresse)
   const empAddrValue = [pdfSafe(empAddr1), pdfSafe(empAddr2)]
+  
+  // Construire les lignes de revenus
+  const revenusRows: Row[] = []
+  
+  if (nonEmpty(l?.salaireNet)) {
+    revenusRows.push({ label: "Salaire net", value: euro(l?.salaireNet), highlight: true, valueBelowLabel: true })
+  }
+  if (nonEmpty(l?.indemnitesChomage)) {
+    revenusRows.push({ label: "Indemnités chômage", value: euro(l?.indemnitesChomage), valueBelowLabel: true })
+  }
+  if (nonEmpty(l?.aahAllocationsHandicap)) {
+    revenusRows.push({ label: "AAH / Allocations handicap", value: euro(l?.aahAllocationsHandicap), valueBelowLabel: true })
+  }
+  if (nonEmpty(l?.rsa)) {
+    revenusRows.push({ label: "RSA", value: euro(l?.rsa), valueBelowLabel: true })
+  }
+  if (nonEmpty(l?.pension)) {
+    revenusRows.push({ label: "Pension (retraite, pension alimentaire…)", value: euro(l?.pension), valueBelowLabel: true })
+  }
+  if (nonEmpty(l?.revenusAutoEntrepreneur)) {
+    revenusRows.push({ label: "Revenus auto-entrepreneur / indépendant", value: euro(l?.revenusAutoEntrepreneur), valueBelowLabel: true })
+  }
+  if (nonEmpty(l?.aidesAuLogement)) {
+    revenusRows.push({ label: "Aides au logement (APL estimées)", value: euro(l?.aidesAuLogement), valueBelowLabel: true })
+  }
+  
+  // Si aucun revenu n'est renseigné, afficher un tiret
+  if (revenusRows.length === 0) {
+    revenusRows.push({ label: "Revenus mensuels", value: dash })
+  }
+  
   return [
     { label: "Type de contrat / statut", value: pdfSafe(contractOrStatus(l)), highlight: true }, // highlight pour le mettre en gras
     { label: "Profession", value: pdfSafe(showOrDash(l?.profession)) },
@@ -278,7 +310,7 @@ function proRows(l?: Locataire): Row[] {
     { label: "Employeur (téléphone)", value: pdfSafe(showOrDash(l?.employeurTelephone)) },
     { label: "Date d'embauche", value: pdfSafe(showOrDash(l?.dateEmbauche)) },
     { label: "Date de fin de contrat", value: pdfSafe(showOrDash(l?.dateFinContrat)) },
-    { label: "Salaire net mensuel (€)", value: euro(l?.salaire), highlight: true },
+    ...revenusRows,
     { 
       label: "Revenus complémentaires", 
       value: revenusAdditionnelsLines(l?.revenusAdditionnels), 
@@ -465,21 +497,23 @@ function prepareRowParts(row: Row, font: any, colMaxWidth: number): PreparedRow 
   if (row.specialFormat === 'revenus' && Array.isArray(row.value) && row.value.length > 0) {
     const revenus = row.value as RevenuFormatted[]
     const parts: PreparedPart[] = []
-    
+
     for (const revenu of revenus) {
       // Pour chaque revenu, créer une ligne avec le label et le montant
       const text = `${revenu.label} : ${revenu.montant} €/mois`
       const lines = wrapByWidth(text, font, BODY_SIZE, maxWidth)
       const lh = lines.length >= 3 ? LONG_LINE_HEIGHT : LINE_HEIGHT
       parts.push({ lines, lh })
-      
+
       // Ajouter un espace entre chaque revenu (saut de ligne)
       if (revenus.indexOf(revenu) < revenus.length - 1) {
         parts.push({ lines: [""], lh: LINE_HEIGHT / 2 }) // Espace réduit entre les revenus
       }
     }
-    
-    const totalHeight = parts.reduce((acc: number, p: PreparedPart) => acc + p.lines.length * p.lh, 0)
+
+    // Inclure la ligne de label ("Revenus complémentaires") dans la hauteur nécessaire
+    const totalHeight =
+      LINE_HEIGHT + parts.reduce((acc: number, p: PreparedPart) => acc + p.lines.length * p.lh, 0)
     return { parts, totalHeight }
   }
   
@@ -487,7 +521,7 @@ function prepareRowParts(row: Row, font: any, colMaxWidth: number): PreparedRow 
   if (typeof row.value === 'string') {
     const lines = wrapByWidth(row.value || dash, font, BODY_SIZE, maxWidth)
     const lh = lines.length >= 3 ? LONG_LINE_HEIGHT : LINE_HEIGHT
-    const totalHeight = lines.length * lh
+    const totalHeight = lines.length * lh + (row.valueBelowLabel ? LINE_HEIGHT : 0)
     return { parts: [{ lines, lh }], totalHeight }
   }
   
@@ -505,7 +539,8 @@ function prepareRowParts(row: Row, font: any, colMaxWidth: number): PreparedRow 
       const lh = lines.length >= 3 ? LONG_LINE_HEIGHT : LINE_HEIGHT
       return { lines, lh }
     })
-    const totalHeight = parts.reduce((acc, p) => acc + p.lines.length * p.lh, 0)
+    const totalHeight =
+      parts.reduce((acc, p) => acc + p.lines.length * p.lh, 0) + (row.valueBelowLabel ? LINE_HEIGHT : 0)
     return { parts, totalHeight }
   }
   
@@ -523,42 +558,33 @@ function drawLabeledRowFromPrepared(ctx: DocContext, row: Row, prepared: Prepare
   
   // Gestion spéciale pour les revenus complémentaires
   if (row.specialFormat === 'revenus' && Array.isArray(row.value) && row.value.length > 0) {
-    const revenus = row.value as RevenuFormatted[]
-    
-    // Saut de ligne direct après le label
-    let yy = ctx.y - LINE_HEIGHT
-    
-    for (const revenu of revenus) {
-      // Dessiner le label du revenu (même position x que le label principal)
-      const labelText = `${revenu.label} : `
-      const labelWidth = ctx.fonts.reg.widthOfTextAtSize(labelText, BODY_SIZE)
-      
-      ctx.page.drawText(labelText, { x: xLabel, y: yy, size: BODY_SIZE, font: ctx.fonts.reg, color: BLACK })
-      
-      // Dessiner le montant en gras (juste après le label)
-      const montantText = `${revenu.montant} €/mois`
-      ctx.page.drawText(montantText, { 
-        x: xLabel + labelWidth, 
-        y: yy, 
-        size: BODY_SIZE, 
-        font: ctx.fonts.bold, 
-        color: BLACK 
-      })
-      
-      yy -= LINE_HEIGHT
-      
-      // Ajouter un espace entre les revenus (sauf pour le dernier)
-      if (revenus.indexOf(revenu) < revenus.length - 1) {
-        yy -= LINE_HEIGHT / 2
+    let yy = ctx.y - LINE_HEIGHT // première ligne sous le label principal
+
+    for (const part of prepared.parts) {
+      for (let i = 0; i < part.lines.length; i++) {
+        const line = part.lines[i]
+        const isBlank = line.trim() === ""
+        const xPos = i === 0 ? xValue : xValue + 20 // légère indentation si le texte wrappe
+        if (!isBlank) {
+          ctx.page.drawText(pdfSafe(line), {
+            x: xPos,
+            y: yy,
+            size: BODY_SIZE,
+            font: ctx.fonts.reg,
+            color: BLACK,
+          })
+        }
+        yy -= part.lh
       }
     }
-    
+
     ctx.y = yy - 2
     return
   }
   
   // Gestion normale pour les autres types
-  let yy = ctx.y
+  const startOffset = row.valueBelowLabel ? LINE_HEIGHT : 0
+  let yy = ctx.y - startOffset
   for (const part of prepared.parts) {
     for (let i = 0; i < part.lines.length; i++) {
       const line = part.lines[i]
@@ -572,7 +598,7 @@ function drawLabeledRowFromPrepared(ctx: DocContext, row: Row, prepared: Prepare
     }
   }
   // update ctx.y to the min end
-  ctx.y = Math.min(yy, ctx.y - LINE_HEIGHT) - 2
+  ctx.y = Math.min(yy, ctx.y - LINE_HEIGHT - startOffset) - 2
 }
 
 // Column headings helper - OPTIMISÉ avec numérotation dynamique

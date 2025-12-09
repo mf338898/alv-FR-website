@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
     // Envoyer l'email avec le PDF en pièce jointe
     await sendMail({
-      to: process.env.RECIPIENT_EMAIL || 'contact@alvimobilier.bzh',
+      to: process.env.RECIPIENT_EMAIL || 'foveau16@gmail.com',
       cc: garants[0]?.email || undefined, // Copie à l'utilisateur
       subject: `Nouveau formulaire garant - ${garants[0]?.nom} ${garants[0]?.prenom}`,
       html: emailHTML,

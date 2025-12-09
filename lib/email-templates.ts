@@ -16,6 +16,14 @@ export function generateGarantEmailHTML(data: {
 </head>
 <body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f8fafc;">
     <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 20px; border-radius: 8px;">
+        <div style="background-color:#fff5f5;border:1px solid #fecdd3;color:#b91c1c;padding:10px 12px;border-radius:6px;margin-bottom:16px;font-weight:600;font-size:13px;">
+          ⚠️ Ce message est envoyé automatiquement. Merci de ne pas y répondre.<br />
+          Pour toute question, contactez l’agence au 02 98 26 71 47 ou par mail à contact@alvimmobilier.bzh.
+        </div>
+        <div style="background-color:#fff5f5;border:1px solid #fecdd3;color:#b91c1c;padding:10px 12px;border-radius:6px;margin-bottom:16px;font-weight:600;font-size:13px;">
+          ⚠️ Ce message est envoyé automatiquement. Merci de ne pas y répondre.<br />
+          Pour toute question, contactez l’agence au 02 98 26 71 47 ou par mail à contact@alvimmobilier.bzh.
+        </div>
         
         <h1 style="color: #0072BC; margin: 0 0 20px 0;">Nouveau formulaire de garant reçu</h1>
         
@@ -68,6 +76,7 @@ export function generateGarantEmailHTML(data: {
         <!-- PDF Notice -->
         <div style="background-color: #dcfce7; border: 1px solid #bbf7d0; padding: 15px; text-align: center; margin-top: 20px; border-radius: 6px;">
             <p style="margin: 0; color: #166534; font-weight: bold;">📄 PDF complet joint</p>
+            <p style="margin: 4px 0 0 0; color: #166534;">📑 CSV import CRM (ImmoFacile / AC3) joint</p>
         </div>
 
         
@@ -85,6 +94,9 @@ export function generateGarantEmailText(data: {
   const { garants, cautionnes } = data
   
   return `
+⚠️ Ce message est envoyé automatiquement. Merci de ne pas y répondre.
+Pour toute question, contactez l’agence au 02 98 26 71 47 ou par mail à contact@alvimmobilier.bzh.
+
 NOUVEAU FORMULAIRE DE GARANT REÇU - ALV IMMOBILIER
 
 RÉSUMÉ GÉNÉRAL :
@@ -140,6 +152,10 @@ export function generateLocataireEmailHTML(data: {
 </head>
 <body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f8fafc;">
     <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 20px; border-radius: 8px;">
+        <div style="background-color:#fff5f5;border:1px solid #fecdd3;color:#b91c1c;padding:10px 12px;border-radius:6px;margin-bottom:16px;font-weight:600;font-size:13px;">
+          ⚠️ Ce message est envoyé automatiquement. Merci de ne pas y répondre.<br />
+          Pour toute question, contactez l’agence au 02 98 26 71 47 ou par mail à contact@alvimmobilier.bzh.
+        </div>
         
         <h1 style="color: #0072BC; margin: 0 0 20px 0;">Nouveau formulaire locataire reçu</h1>
         
@@ -166,7 +182,17 @@ export function generateLocataireEmailHTML(data: {
                     <p style="margin: 3px 0;"><strong>Email :</strong> ${locataire.email || '-'}</p>
                     <p style="margin: 3px 0;"><strong>Profession :</strong> ${locataire.profession || '-'}</p>
                     <p style="margin: 3px 0;"><strong>Employeur :</strong> ${locataire.employeurNom || '-'}</p>
-                    <p style="margin: 3px 0;"><strong>Salaire :</strong> ${locataire.salaire ? locataire.salaire + ' €' : '-'}</p>
+                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+                        <p style="margin: 2px 0; font-weight: bold; color: #0072BC;">Revenus mensuels :</p>
+                        ${locataire.salaireNet ? `<p style="margin: 2px 0;"><strong>Salaire net :</strong> ${locataire.salaireNet} €</p>` : ''}
+                        ${locataire.indemnitesChomage ? `<p style="margin: 2px 0;"><strong>Indemnités chômage :</strong> ${locataire.indemnitesChomage} €</p>` : ''}
+                        ${locataire.aahAllocationsHandicap ? `<p style="margin: 2px 0;"><strong>AAH / Allocations handicap :</strong> ${locataire.aahAllocationsHandicap} €</p>` : ''}
+                        ${locataire.rsa ? `<p style="margin: 2px 0;"><strong>RSA :</strong> ${locataire.rsa} €</p>` : ''}
+                        ${locataire.pension ? `<p style="margin: 2px 0;"><strong>Pension :</strong> ${locataire.pension} €</p>` : ''}
+                        ${locataire.revenusAutoEntrepreneur ? `<p style="margin: 2px 0;"><strong>Revenus auto-entrepreneur :</strong> ${locataire.revenusAutoEntrepreneur} €</p>` : ''}
+                        ${locataire.aidesAuLogement ? `<p style="margin: 2px 0;"><strong>Aides au logement :</strong> ${locataire.aidesAuLogement} €</p>` : ''}
+                        ${!locataire.salaireNet && !locataire.indemnitesChomage && !locataire.aahAllocationsHandicap && !locataire.rsa && !locataire.pension && !locataire.revenusAutoEntrepreneur && !locataire.aidesAuLogement ? '<p style="margin: 2px 0; color: #6b7280;">Aucun revenu renseigné</p>' : ''}
+                    </div>
                 </div>
             `).join('')}
         </div>
@@ -214,6 +240,9 @@ export function generateLocataireEmailText(data: {
   const { locataires, criteresRecherche, garanties, bienConcerne, nombreEnfantsFoyer } = formData
   
   return `
+⚠️ Ce message est envoyé automatiquement. Merci de ne pas y répondre.
+Pour toute question, contactez l’agence au 02 98 26 71 47 ou par mail à contact@alvimmobilier.bzh.
+
 NOUVEAU FORMULAIRE LOCATAIRE REÇU - ALV IMMOBILIER
 
 RÉSUMÉ GÉNÉRAL :
@@ -233,7 +262,15 @@ Locataire ${index + 1} :
 - Email : ${locataire.email || '-'}
 - Profession : ${locataire.profession || '-'}
 - Employeur : ${locataire.employeurNom || '-'}
-- Salaire : ${locataire.salaire ? locataire.salaire + ' €' : '-'}
+- Revenus mensuels :
+${locataire.salaireNet ? `  - Salaire net : ${locataire.salaireNet} €` : ''}
+${locataire.indemnitesChomage ? `  - Indemnités chômage : ${locataire.indemnitesChomage} €` : ''}
+${locataire.aahAllocationsHandicap ? `  - AAH / Allocations handicap : ${locataire.aahAllocationsHandicap} €` : ''}
+${locataire.rsa ? `  - RSA : ${locataire.rsa} €` : ''}
+${locataire.pension ? `  - Pension : ${locataire.pension} €` : ''}
+${locataire.revenusAutoEntrepreneur ? `  - Revenus auto-entrepreneur : ${locataire.revenusAutoEntrepreneur} €` : ''}
+${locataire.aidesAuLogement ? `  - Aides au logement : ${locataire.aidesAuLogement} €` : ''}
+${!locataire.salaireNet && !locataire.indemnitesChomage && !locataire.aahAllocationsHandicap && !locataire.rsa && !locataire.pension && !locataire.revenusAutoEntrepreneur && !locataire.aidesAuLogement ? '  - Aucun revenu renseigné' : ''}
 `).join('\n')}
 
 CRITÈRES DE RECHERCHE :
@@ -249,6 +286,6 @@ GARANTIES :
 - Garantie Visale : ${garanties.garantieVisale || '-'}
 - Précisions : ${garanties.precisionGarant || '-'}
 
-PDF COMPLET JOINT
+PDF + CSV (import CRM) JOINTS
   `.trim()
 }

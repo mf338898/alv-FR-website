@@ -1,17 +1,18 @@
 import type React from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Shield, Building2, HandCoins, Tag, Phone, Mail, MapPin, CheckCircle2, ArrowRight, Star, Clock, Users, Home, Key, Calculator, FileText, ChevronDown } from "lucide-react"
+import { Shield, Building2, HandCoins, Tag, Phone, Mail, MapPin, CheckCircle2, ArrowRight, Clock, Users, FileText, ChevronDown, Target, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { FadeInText, Reveal } from "@/components/react-bits"
 
 export default function ALVImmobilierHome() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
+    <div className="min-h-screen relative bg-slate-50 overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(0,90,156,0.06),transparent_35%),radial-gradient(circle_at_80%_10%,rgba(76,175,80,0.06),transparent_30%),linear-gradient(120deg,rgba(0,90,156,0.03),rgba(76,175,80,0.03))]" />
       {/* Header moderne avec navigation */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200/60 shadow-sm">
+      <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-slate-200/60 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20">
             {/* Logo avec animation subtile */}
@@ -104,31 +105,48 @@ export default function ALVImmobilierHome() {
       <main>
         {/* Hero Section avec design moderne */}
         <section className="relative overflow-hidden">
-          {/* Background avec éléments visuels */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 via-indigo-600/5 to-purple-600/5" />
-          <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-blue-400/10 to-indigo-400/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-0 w-80 h-80 bg-gradient-to-tr from-emerald-400/10 to-blue-400/10 rounded-full blur-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/40 to-emerald-50/30" />
+          <div className="absolute inset-0 opacity-60 bg-[radial-gradient(circle_at_30%_20%,rgba(0,90,156,0.12),transparent_35%),radial-gradient(circle_at_80%_70%,rgba(76,175,80,0.12),transparent_32%)] blur-3xl" />
           
           <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
             <div className="text-center max-w-4xl mx-auto">
-              {/* Badge de confiance */}
-              <div className="inline-flex items-center space-x-2 bg-emerald-50 border border-emerald-200 rounded-full px-4 py-2 mb-8">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                <span className="text-sm font-medium text-emerald-700">Agence certifiée et de confiance</span>
+              <Reveal>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
+                  Préparez votre dossier{" "}
+                  <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-emerald-600 bg-clip-text text-transparent">
+                    en ligne
+                  </span>
+                </h1>
+              </Reveal>
+              
+              <Reveal delay={80}>
+                <p className="text-xl text-slate-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+                  <FadeInText text="Remplissez votre fiche de renseignements en quelques minutes." />
+                  <span className="block mt-1">
+                    <FadeInText text="Nous recevons votre dossier et vous recontactons rapidement pour la suite." delay={150} />
+                  </span>
+                </p>
+              </Reveal>
+
+              <Reveal delay={120}>
+                <div className="mt-10 bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl shadow-lg p-6 sm:p-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-left">
+                  {[
+                    "Sélectionnez votre situation",
+                    "Remplissez le formulaire adapté",
+                    "Recevez une copie PDF par email",
+                    "L’agence traite votre dossier sous 24 h",
+                  ].map((step, index) => (
+                  <div key={step} className="flex items-start space-x-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-md">
+                        {index + 1}
+                      </div>
+                      <p className="text-slate-700 font-medium leading-snug">{step}</p>
+                    </div>
+                  ))}
+                  </div>
               </div>
-              
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 leading-tight">
-                <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                  Fiche de renseignements
-                </span>
-                <br />
-                <span className="text-slate-800">en ligne</span>
-          </h1>
-              
-              <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto leading-relaxed">
-                Remplissez votre fiche de renseignements en ligne. 
-                Nous recevons votre dossier par email et vous contactons rapidement.
-              </p>
+              </Reveal>
             </div>
           </div>
         </section>
@@ -136,276 +154,281 @@ export default function ALVImmobilierHome() {
         {/* Section des services avec design moderne */}
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
-              Sélectionnez votre profil
-            </h2>
-            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-              Remplissez le formulaire adapté à votre situation
-            </p>
+            <FadeInText text="Choisissez votre situation" className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4 inline-block" />
+            <Reveal delay={80}>
+              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                Remplissez le formulaire adapté pour préparer votre dossier en quelques minutes.
+              </p>
+            </Reveal>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Locataire - Carte active avec design premium */}
-            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100">
+            <Reveal className="h-full">
+            <Card className="group relative overflow-hidden border border-slate-100 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-500 bg-gradient-to-br from-blue-50 to-indigo-50 flex flex-col">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-400/20 to-indigo-400/20 rounded-full blur-2xl group-hover:scale-110 transition-transform duration-500" />
               <CardHeader className="relative pb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg">
                     <Building2 className="h-6 w-6" />
                   </div>
-                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200">
-                    Disponible
-                  </Badge>
                 </div>
+                <p className="text-sm font-semibold text-blue-700 uppercase tracking-wide">Je suis locataire</p>
                 <CardTitle className="text-2xl font-bold text-slate-900 mb-2">
-                  Je suis locataire
+                  Préparer mon dossier locataire
                 </CardTitle>
                 <p className="text-slate-600 leading-relaxed">
-                  Créez votre fiche de renseignements pour une demande de location. 
-                  Formulaire en 7 étapes avec validation automatique.
+                  Créez votre fiche locataire avant toute visite.
+                  <span className="block">Vos informations nous permettent d’étudier votre dossier et de vous recontacter rapidement.</span>
                 </p>
               </CardHeader>
-              <CardContent className="relative">
+              <CardContent className="relative flex flex-col h-full">
                 <div className="space-y-4 mb-6">
                   <div className="flex items-center space-x-3 text-sm text-slate-600">
                     <Clock className="h-4 w-4 text-blue-600" />
-                    <span>Complétion en 5-10 minutes</span>
+                    <span>5 à 10 minutes pour remplir</span>
                   </div>
                   <div className="flex items-center space-x-3 text-sm text-slate-600">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <span>Validation automatique des données</span>
+                    <FileText className="h-4 w-4 text-indigo-600" />
+                    <span>Vos informations regroupées en une seule fois</span>
                   </div>
                   <div className="flex items-center space-x-3 text-sm text-slate-600">
-                    <FileText className="h-4 w-4 text-purple-600" />
-                    <span>Génération PDF automatique</span>
+                    <Target className="h-4 w-4 text-purple-600" />
+                    <span>Possibilité d’indiquer vos critères de recherche (location et/ou achat)</span>
                   </div>
                 </div>
                 <Button
                   asChild
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105"
+                  className="mt-auto w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                   size="lg"
                 >
                   <Link href="/locataire/formulaire" className="flex items-center justify-center space-x-2">
-                    <span>Commencer maintenant</span>
+                    <span>Remplir la fiche locataire</span>
                     <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
                   </Link>
                 </Button>
               </CardContent>
             </Card>
+            </Reveal>
 
             {/* Cautionnaire - Carte active avec design premium */}
-            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100">
+            <Reveal className="h-full" delay={60}>
+            <Card className="group relative overflow-hidden border border-slate-100 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-500 bg-gradient-to-br from-emerald-50 to-teal-50 flex flex-col">
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-400/20 to-teal-400/20 rounded-full blur-2xl group-hover:scale-110 transition-transform duration-500" />
               <CardHeader className="relative pb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg">
                     <Shield className="h-6 w-6" />
                   </div>
-                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-200">
-                    Disponible
-                  </Badge>
                 </div>
+                <p className="text-sm font-semibold text-emerald-700 uppercase tracking-wide">Je me porte cautionnaire</p>
                 <CardTitle className="text-2xl font-bold text-slate-900 mb-2">
-                  Je me porte cautionnaire
+                  Préparer ma fiche de caution
                 </CardTitle>
                 <p className="text-slate-600 leading-relaxed">
-                  Créez votre fiche garant avec vos informations personnelles et professionnelles.
+                  Renseignez vos informations de caution pour accompagner le dossier locataire.
                 </p>
               </CardHeader>
-              <CardContent className="relative">
+              <CardContent className="relative flex flex-col h-full">
                 <div className="space-y-4 mb-6">
                   <div className="flex items-center space-x-3 text-sm text-slate-600">
                     <Shield className="h-4 w-4 text-emerald-600" />
-                    <span>Protection du locataire</span>
+                    <span>Sécurise et accompagne le dossier locataire</span>
                   </div>
                   <div className="flex items-center space-x-3 text-sm text-slate-600">
-                    <Calculator className="h-4 w-4 text-teal-600" />
-                    <span>Évaluation de solvabilité</span>
+                    <FileText className="h-4 w-4 text-teal-600" />
+                    <span>Coordonnées et ressources regroupées</span>
                   </div>
                   <div className="flex items-center space-x-3 text-sm text-slate-600">
                     <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <span>Processus simplifié</span>
+                    <span>PDF récapitulatif envoyé par email</span>
                   </div>
                 </div>
                 <Button
                   asChild
-                  className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105"
+                  className="mt-auto w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                   size="lg"
                 >
                   <Link href="/garant/formulaire" className="flex items-center justify-center space-x-2">
-                    <span>Accéder à la fiche</span>
+                    <span>Remplir la fiche cautionnaire</span>
                     <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
                   </Link>
                 </Button>
               </CardContent>
             </Card>
+            </Reveal>
 
-            {/* Propriétaire - Carte inactive avec design moderne */}
-            <Card className="group relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-slate-50 to-gray-50 opacity-75">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-slate-400/20 to-gray-400/20 rounded-full blur-2xl" />
+            {/* Propriétaire - Carte activée */}
+            <Reveal className="h-full" delay={100}>
+            <Card className="group relative overflow-hidden border border-slate-100 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-500 bg-gradient-to-br from-slate-50 to-gray-50 flex flex-col">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-slate-400/20 to-gray-400/20 rounded-full blur-2xl group-hover:scale-110 transition-transform duration-500" />
               <CardHeader className="relative pb-4">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-3 rounded-xl bg-gradient-to-br from-slate-400 to-gray-500 text-white shadow-lg">
+                  <div className="p-3 rounded-xl bg-gradient-to-br from-slate-500 to-gray-700 text-white shadow-lg">
                     <Tag className="h-6 w-6" />
                   </div>
-                  <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-slate-200">
-                    Bientôt disponible
-                  </Badge>
                 </div>
-                <CardTitle className="text-2xl font-bold text-slate-600 mb-2">
-                  Je suis propriétaire
+                <p className="text-sm font-semibold text-slate-700 uppercase tracking-wide">Je suis propriétaire</p>
+                <CardTitle className="text-2xl font-bold text-slate-900 mb-2">
+                  Préparer mon dossier propriétaire
                 </CardTitle>
-                <p className="text-slate-500 leading-relaxed">
-                  Confiez-nous la gestion ou la location de votre bien. 
-                  Notre expertise au service de votre patrimoine.
+                <p className="text-slate-600 leading-relaxed">
+                  Renseignez votre situation en vue de la mise en location de votre bien (location simple ou gestion locative).
                 </p>
               </CardHeader>
-              <CardContent className="relative">
+              <CardContent className="relative flex flex-col h-full">
                 <div className="space-y-4 mb-6">
-                  <div className="flex items-center space-x-3 text-sm text-slate-500">
-                    <Home className="h-4 w-4 text-slate-400" />
-                    <span>Gestion locative</span>
+                  <div className="flex items-center space-x-3 text-sm text-slate-600">
+                    <User className="h-4 w-4 text-slate-600" />
+                    <span>Coordonnées et situation du ou des propriétaires</span>
                   </div>
-                  <div className="flex items-center space-x-3 text-sm text-slate-500">
-                    <Key className="h-4 w-4 text-slate-400" />
-                    <span>Location de biens</span>
+                  <div className="flex items-center space-x-3 text-sm text-slate-600">
+                    <FileText className="h-4 w-4 text-slate-600" />
+                    <span>Informations utiles pour préparer les documents de location</span>
                   </div>
-                  <div className="flex items-center space-x-3 text-sm text-slate-500">
-                    <Calculator className="h-4 w-4 text-slate-400" />
-                    <span>Évaluation de biens</span>
+                  <div className="flex items-center space-x-3 text-sm text-slate-600">
+                    <Clock className="h-4 w-4 text-slate-600" />
+                    <span>Gain de temps pour la mise en place du dossier</span>
                   </div>
                 </div>
                 <Button
-                  disabled
-                  className="w-full bg-slate-200 text-slate-400 cursor-not-allowed"
+                  asChild
+                  className="mt-auto w-full bg-gradient-to-r from-slate-700 to-gray-800 hover:from-slate-800 hover:to-gray-900 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                   size="lg"
                 >
-                  <Clock className="h-4 w-4 mr-2" />
-                  Bientôt disponible
+                  <Link href="/proprietaire/formulaire" className="flex items-center justify-center space-x-2">
+                    <span>Remplir la fiche propriétaire</span>
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
+            </Reveal>
 
-            {/* Acquéreur - Carte inactive */}
-            <Card className="group relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-amber-50 to-orange-50 opacity-75">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-400/20 to-orange-400/20 rounded-full blur-2xl" />
+            {/* Acquéreur - Carte activée */}
+            <Reveal className="h-full" delay={140}>
+            <Card className="group relative overflow-hidden border border-slate-100 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-500 bg-gradient-to-br from-amber-50 to-orange-50 flex flex-col">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-400/20 to-orange-400/20 rounded-full blur-2xl group-hover:scale-110 transition-transform duration-500" />
               <CardHeader className="relative pb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-lg">
                     <HandCoins className="h-6 w-6" />
                   </div>
-                  <Badge variant="secondary" className="bg-amber-100 text-amber-600 border-amber-200">
-                    Bientôt disponible
-                  </Badge>
                 </div>
-                <CardTitle className="text-2xl font-bold text-slate-600 mb-2">
-                  Je suis acquéreur
+                <p className="text-sm font-semibold text-amber-700 uppercase tracking-wide">Je suis acquéreur</p>
+                <CardTitle className="text-2xl font-bold text-slate-900 mb-2">
+                  Préparer mon dossier acquéreur
                 </CardTitle>
-                <p className="text-slate-500 leading-relaxed">
-                  Achetez un bien par notre agence avec un accompagnement 
-                  personnalisé et sécurisé.
+                <p className="text-slate-600 leading-relaxed">
+                  Vous avez une offre d’achat acceptée ? Renseignez votre situation pour finaliser votre projet.
                 </p>
               </CardHeader>
-              <CardContent className="relative">
+              <CardContent className="relative flex flex-col h-full">
                 <div className="space-y-4 mb-6">
-                  <div className="flex items-center space-x-3 text-sm text-slate-500">
-                    <Home className="h-4 w-4 text-amber-400" />
-                    <span>Recherche de biens</span>
+                  <div className="flex items-center space-x-3 text-sm text-slate-600">
+                    <Users className="h-4 w-4 text-amber-500" />
+                    <span>Situation familiale et coordonnées complètes</span>
                   </div>
-                  <div className="flex items-center space-x-3 text-sm text-slate-500">
-                    <Calculator className="h-4 w-4 text-amber-400" />
-                    <span>Simulation de prêt</span>
+                  <div className="flex items-center space-x-3 text-sm text-slate-600">
+                    <HandCoins className="h-4 w-4 text-amber-500" />
+                    <span>Informations sur votre mode de financement</span>
                   </div>
-                  <div className="flex items-center space-x-3 text-sm text-slate-500">
-                    <Shield className="h-4 w-4 text-amber-400" />
-                    <span>Accompagnement juridique</span>
+                  <div className="flex items-center space-x-3 text-sm text-slate-600">
+                    <Clock className="h-4 w-4 text-amber-500" />
+                    <span>Gain de temps pour la rédaction et la signature du compromis</span>
                   </div>
                 </div>
                 <Button
-                  disabled
-                  className="w-full bg-amber-200 text-amber-400 cursor-not-allowed"
+                  asChild
+                  className="mt-auto w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                   size="lg"
                 >
-                  <Clock className="h-4 w-4 mr-2" />
-                  Bientôt disponible
+                  <Link href="/acquereur/formulaire" className="flex items-center justify-center space-x-2">
+                    <span>Remplir la fiche acquéreur</span>
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
+            </Reveal>
 
-            {/* Vendeur - Carte inactive */}
-            <Card className="group relative overflow-hidden border-0 shadow-lg bg-gradient-to-br from-purple-50 to-pink-50 opacity-75">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl" />
+            {/* Vendeur - Carte active */}
+            <Reveal className="h-full" delay={180}>
+            <Card className="group relative overflow-hidden border border-slate-100 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-500 bg-gradient-to-br from-purple-50 to-pink-50 flex flex-col">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-2xl group-hover:scale-110 transition-transform duration-500" />
               <CardHeader className="relative pb-4">
                 <div className="flex items-center justify-between mb-4">
                   <div className="p-3 rounded-xl bg-gradient-to-br from-purple-400 to-pink-500 text-white shadow-lg">
                     <Tag className="h-6 w-6" />
                   </div>
-                  <Badge variant="secondary" className="bg-purple-100 text-purple-600 border-purple-200">
-                    Bientôt disponible
-                  </Badge>
                 </div>
-                <CardTitle className="text-2xl font-bold text-slate-600 mb-2">
-                  Je suis vendeur
+                <p className="text-sm font-semibold text-purple-700 uppercase tracking-wide">Je suis vendeur</p>
+                <CardTitle className="text-2xl font-bold text-slate-900 mb-2">
+                  Préparer mon dossier de vente
                 </CardTitle>
-                <p className="text-slate-500 leading-relaxed">
-                  Vendez votre bien avec ALV Immobilier. 
-                  Notre expertise pour valoriser votre patrimoine.
+                <p className="text-slate-600 leading-relaxed">
+                  Renseignez votre situation personnelle pour préparer votre dossier vendeur.
                 </p>
               </CardHeader>
-              <CardContent className="relative">
+              <CardContent className="relative flex flex-col h-full">
                 <div className="space-y-4 mb-6">
-                  <div className="flex items-center space-x-3 text-sm text-slate-500">
-                    <Home className="h-4 w-4 text-purple-400" />
-                    <span>Estimation gratuite</span>
+                  <div className="flex items-center space-x-3 text-sm text-slate-600">
+                    <User className="h-4 w-4 text-purple-500" />
+                    <span>État civil et coordonnées à jour</span>
                   </div>
-                  <div className="flex items-center space-x-3 text-sm text-slate-500">
-                    <Users className="h-4 w-4 text-purple-400" />
-                    <span>Mise en relation</span>
+                  <div className="flex items-center space-x-3 text-sm text-slate-600">
+                    <FileText className="h-4 w-4 text-purple-500" />
+                    <span>Informations utiles pour la rédaction du mandat</span>
                   </div>
-                  <div className="flex items-center space-x-3 text-sm text-slate-500">
-                    <Calculator className="h-4 w-4 text-purple-400" />
-                    <span>Accompagnement complet</span>
+                  <div className="flex items-center space-x-3 text-sm text-slate-600">
+                    <Clock className="h-4 w-4 text-purple-500" />
+                    <span>Gain de temps lors des rendez-vous et démarches</span>
                   </div>
                 </div>
                 <Button
-                  disabled
-                  className="w-full bg-purple-200 text-purple-400 cursor-not-allowed"
+                  asChild
+                  className="mt-auto w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                   size="lg"
                 >
-                  <Clock className="h-4 w-4 mr-2" />
-                  Bientôt disponible
+                  <Link href="/vendeur/formulaire" className="flex items-center justify-center space-x-2">
+                    <span>Remplir la fiche vendeur</span>
+                    <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
+                  </Link>
                 </Button>
               </CardContent>
             </Card>
+            </Reveal>
           </div>
 
           {/* Section de confiance */}
           <div className="mt-20 text-center">
-            <div className="bg-white/60 backdrop-blur-sm rounded-2xl p-8 border border-slate-200/60 shadow-lg">
-              <div className="flex flex-col md:flex-row items-center justify-center space-y-6 md:space-y-0 md:space-x-12">
-                <div className="flex items-center space-x-3">
-                  <Shield className="h-8 w-8 text-emerald-600" />
-                  <div className="text-left">
-                    <p className="font-semibold text-slate-900">Données sécurisées</p>
-                    <p className="text-sm text-slate-600">Conformité RGPD garantie</p>
+            <Reveal>
+              <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 border border-slate-200/60 shadow-lg">
+                <div className="flex flex-col md:flex-row items-center justify-center space-y-6 md:space-y-0 md:space-x-12">
+                  <div className="flex items-center space-x-3">
+                    <Shield className="h-8 w-8 text-emerald-600" />
+                    <div className="text-left">
+                      <p className="font-semibold text-slate-900">Données sécurisées</p>
+                      <p className="text-sm text-slate-600">Conformité RGPD garantie</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <FileText className="h-8 w-8 text-blue-600" />
-                  <div className="text-left">
-                    <p className="font-semibold text-slate-900">PDF automatique</p>
-                    <p className="text-sm text-slate-600">Génération et envoi par email</p>
+                  <div className="flex items-center space-x-3">
+                    <FileText className="h-8 w-8 text-blue-600" />
+                    <div className="text-left">
+                      <p className="font-semibold text-slate-900">PDF automatique</p>
+                      <p className="text-sm text-slate-600">Génération et envoi par email</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Clock className="h-8 w-8 text-purple-600" />
-                  <div className="text-left">
-                    <p className="font-semibold text-slate-900">Traitement rapide</p>
-                    <p className="text-sm text-slate-600">Réponse sous 24h</p>
+                  <div className="flex items-center space-x-3">
+                    <Clock className="h-8 w-8 text-purple-600" />
+                    <div className="text-left">
+                      <p className="font-semibold text-slate-900">Traitement rapide</p>
+                      <p className="text-sm text-slate-600">Réponse sous 24h</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </Reveal>
           </div>
         </section>
       </main>

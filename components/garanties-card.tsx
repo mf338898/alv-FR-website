@@ -1,6 +1,8 @@
 "use client"
 
 import { FormSection } from "./form-section"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Shield } from "lucide-react"
 import type { Garanties } from "@/lib/types"
 
 interface GarantiesCardProps {
@@ -20,16 +22,8 @@ export function GarantiesCard({
   onFieldBlur,
   showValidationErrors = false
 }: GarantiesCardProps) {
-  // Fonction pour vérifier si un champ est manquant
-  const isFieldMissing = (field: string): boolean => {
-    if (!showValidationErrors) return false
-    
-    const requiredFields = ['garantFamilial', 'garantieVisale', 'precisionGarant']
-    if (!requiredFields.includes(field)) return false
-    
-    const value = garanties[field as keyof Garanties]
-    return !value || (typeof value === 'string' && value.trim() === '')
-  }
+  // Facultatif : pas de validation bloquante
+  const isFieldMissing = () => false
 
   // Champs pour les garanties
   const garantiesFields = [
@@ -39,26 +33,35 @@ export function GarantiesCard({
   ]
 
   return (
-    <div className="bg-white border border-gray-300 rounded-lg shadow-sm">
-      {/* En-tête de la carte */}
-      <div className="bg-gray-100 px-6 py-3 border-b border-gray-300">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Garanties
-        </h3>
-      </div>
+    <Card className="border-0 shadow-lg bg-white/90">
+      <CardHeader className="border-b border-slate-100 pb-4">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-emerald-100 text-emerald-700">
+              <Shield className="h-5 w-5" />
+            </div>
+            <div>
+              <CardTitle className="text-lg font-semibold text-slate-900">Garanties</CardTitle>
+              <p className="text-sm text-slate-600">Garants familiaux, Visale et précisions</p>
+            </div>
+          </div>
+          <span className="text-xs text-slate-500">Facultatif</span>
+        </div>
+      </CardHeader>
 
-      {/* Section Garanties */}
-      <FormSection
-        title="Informations garanties"
-        fields={garantiesFields}
-        data={garanties}
-        editingField={editingField}
-        onFieldChange={onFieldChange}
-        onFieldEdit={onFieldEdit}
-        onFieldBlur={onFieldBlur}
-        isFieldMissing={isFieldMissing}
-        fieldPrefix="garanties_"
-      />
-    </div>
+      <CardContent className="p-4 sm:p-6">
+        <FormSection
+          title="Informations garanties"
+          fields={garantiesFields}
+          data={garanties}
+          editingField={editingField}
+          onFieldChange={onFieldChange}
+          onFieldEdit={onFieldEdit}
+          onFieldBlur={onFieldBlur}
+          isFieldMissing={isFieldMissing}
+          fieldPrefix="garanties_"
+        />
+      </CardContent>
+    </Card>
   )
 }
