@@ -18,6 +18,7 @@ import {
   Info
 } from "lucide-react"
 import { createTestGarantContact, createTestLocataire } from "@/lib/test-data"
+import { TEST_FILL_ENABLED } from "@/lib/feature-flags"
 import type { Locataire, GarantContact } from "@/lib/types"
 import { LoadingOverlay } from "@/components/loading-overlay"
 import { GarantCard } from "@/components/garant-card"
@@ -269,11 +270,23 @@ export default function GarantFormPage() {
           <div className="flex items-start gap-3">
             <FileText className="h-6 w-6 text-purple-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-xl font-semibold text-slate-900 leading-tight">
                   <FadeInText text="Fiche de renseignements garant" />
                 </h1>
                 <Badge className="bg-purple-50 text-purple-700 border-purple-200">Je me porte cautionnaire</Badge>
+                {TEST_FILL_ENABLED && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleAutofill}
+                    className="h-8 px-2.5 text-xs bg-purple-50 text-purple-700 border border-purple-200 shadow-none hover:bg-purple-100"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Remplir en test
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -291,15 +304,6 @@ export default function GarantFormPage() {
               <CardTitle className="text-2xl sm:text-3xl font-bold">
                 <FadeInText text="Complétez votre dossier de caution en quelques étapes" />
               </CardTitle>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={handleAutofill}
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-              >
-                <Sparkles className="h-4 w-4" />
-                Remplir en test
-              </Button>
             </div>
             <p className="text-sm sm:text-base text-white/80">
               Renseignez vos informations de garant (identité, lien avec le locataire, revenus, type de caution) dans un formulaire guidé.

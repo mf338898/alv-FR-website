@@ -21,6 +21,7 @@ import {
 } from "lucide-react"
 import type { AppFormData, Locataire, CriteresRecherche, Garanties } from "@/lib/types"
 import { createTestCriteres, createTestGaranties, createTestLocataire } from "@/lib/test-data"
+import { TEST_FILL_ENABLED } from "@/lib/feature-flags"
 import { LoadingOverlay } from "@/components/loading-overlay"
 import { LocataireCard } from "@/components/locataire-card"
 import { CriteresRechercheCard } from "@/components/criteres-recherche-card"
@@ -107,6 +108,7 @@ export default function LocataireFormPage() {
   const [locataires, setLocataires] = useState<Locataire[]>([
     createEmptyLocataire()
   ])
+  const [autofillClickIndex, setAutofillClickIndex] = useState<number>(0)
   const [nombreEnfantsFoyer, setNombreEnfantsFoyer] = useState<number>(0)
   const [criteresRecherche, setCriteresRecherche] = useState<CriteresRecherche>(createEmptyCriteres())
   const [garanties, setGaranties] = useState<Garanties>(createEmptyGaranties())
@@ -306,10 +308,8 @@ export default function LocataireFormPage() {
   }
 
   const handleAutofill = () => {
-    // Générer aléatoirement 1, 2 ou 3 locataires avec distribution équilibrée
-    const options = [1, 2, 3]
-    const nombreLocataires = options[Math.floor(Math.random() * options.length)]
-    const sampleLocataires = Array.from({ length: nombreLocataires }, (_, i) => 
+    const nombreLocataires = ((autofillClickIndex % 3) + 1)
+    const sampleLocataires = Array.from({ length: nombreLocataires }, (_, i) =>
       createTestLocataire(i + 1)
     )
     setLocataires(sampleLocataires)
@@ -321,6 +321,7 @@ export default function LocataireFormPage() {
     setEditingField(null)
     setShowValidationErrors(false)
     setErrorMessage(null)
+    setAutofillClickIndex(nombreLocataires)
     toast.success(`Champs préremplis avec ${nombreLocataires} locataire${nombreLocataires > 1 ? 's' : ''} de test.`)
   }
 
@@ -358,10 +359,22 @@ export default function LocataireFormPage() {
           <div className="flex items-start gap-3">
             <FileText className="h-6 w-6 text-purple-600 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-xl font-semibold text-slate-900 leading-tight">
                   <FadeInText text="Fiche de renseignements locataire" />
                 </h1>
+                {TEST_FILL_ENABLED && (
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleAutofill}
+                    className="h-8 px-2.5 text-xs bg-purple-50 text-purple-700 border border-purple-200 shadow-none hover:bg-purple-100"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    Remplir en test
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -384,15 +397,6 @@ export default function LocataireFormPage() {
               <CardTitle className="text-2xl sm:text-3xl font-bold">
                 <FadeInText text="Complétez votre dossier locataire en quelques étapes" />
               </CardTitle>
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={handleAutofill}
-                className="bg-white/20 hover:bg-white/30 text-white border-white/30"
-              >
-                <Sparkles className="h-4 w-4" />
-                Remplir en test
-              </Button>
             </div>
             <p className="text-sm sm:text-base text-white/80">
               Renseignez vos informations de locataire dans un formulaire guidé. Temps estimé : 5 à 10 minutes – vous recevrez un récapitulatif par email.

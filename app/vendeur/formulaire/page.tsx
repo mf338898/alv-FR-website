@@ -43,6 +43,7 @@ import {
 import { CommuneAutocompleteInput } from "@/components/commune-autocomplete-input"
 import { AddressAutocompleteField } from "@/components/address-autocomplete-field"
 import { cn } from "@/lib/utils"
+import { TEST_FILL_ENABLED } from "@/lib/feature-flags"
 
 type OuiNon = "oui" | "non" | ""
 
@@ -2764,11 +2765,21 @@ export default function VendeurFormPage() {
           <div className="flex items-start gap-3">
             <FileText className="h-6 w-6 text-purple-600 flex-shrink-0 mt-0.5" />
             <div>
-              <h1 className="text-xl font-semibold text-slate-900 leading-tight">Fiche de renseignements vendeur</h1>
-              <p className="text-sm text-slate-600">
-                Onglet vendeur – Étape 1 : Qui est le vendeur ? Branches complètes pour personnes, couples, sociétés et cas
-                particuliers.
-              </p>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-xl font-semibold text-slate-900 leading-tight">Fiche de renseignements vendeur</h1>
+                {TEST_FILL_ENABLED && (
+                  <Button
+                    type="button"
+                    onClick={fillWithTestData}
+                    variant="secondary"
+                    size="sm"
+                    className="h-8 px-2.5 text-xs bg-purple-50 text-purple-800 border border-purple-200 shadow-none hover:bg-purple-100"
+                  >
+                    <Sparkles className="h-4 w-4 mr-1" />
+                    Remplir en test
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -2788,24 +2799,6 @@ export default function VendeurFormPage() {
             </div>
           </div>
         </Card>
-
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <Sparkles className="h-5 w-5 text-amber-600 mt-0.5" />
-            <div className="space-y-1">
-              <p className="text-sm font-semibold text-amber-900">Mode test : préremplissage automatique</p>
-              <p className="text-xs text-amber-800">Remplit les branches clés avec des données fictives pour vérifier l’envoi du PDF.</p>
-            </div>
-          </div>
-          <Button
-            type="button"
-            onClick={fillWithTestData}
-            className="bg-amber-600 hover:bg-amber-700 text-white"
-          >
-            <Sparkles className="h-4 w-4 mr-2" />
-            Remplir automatiquement
-          </Button>
-        </div>
 
         <ModernFormSection
           title="Profil du vendeur"
