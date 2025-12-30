@@ -153,6 +153,7 @@ function formatPersonInfo(p: any, index?: number): string {
 
 function buildEmailHTML(data: any) {
   const title = "Nouveau formulaire acquéreur"
+  const hasValue = (v?: string | number | null) => Boolean(v !== undefined && v !== null && String(v).trim() !== "")
   
   let contentHTML = ""
   
@@ -160,6 +161,11 @@ function buildEmailHTML(data: any) {
   contentHTML += `<div style="background:#f0f9ff;border-left:4px solid #0072BC;padding:12px 14px;border-radius:6px;margin-bottom:16px;">
     <p style="margin:4px 0;"><strong>Type d'acquéreur :</strong> ${data?.type || "non précisé"}</p>
     <p style="margin:4px 0;"><strong>Nombre d'acquéreurs déclarés :</strong> ${data?.nombreVendeurs || "-"}</p>
+  </div>`
+
+  contentHTML += `<div style="background:#ecfdf3;border:1px solid #bbf7d0;color:#166534;padding:10px 12px;border-radius:6px;margin-bottom:16px;font-size:13px;line-height:1.5;">
+    Merci d’envoyer les copies de vos pièces d’identité directement à l’agence à l’adresse <strong>contact@alvimobilier.bzh</strong>.<br />
+    Ne répondez pas au mail automatique qui vous transmet cette fiche de renseignements.
   </div>`
   
   // Personne seule
@@ -291,6 +297,32 @@ function buildEmailHTML(data: any) {
       </div>
     </div>`
   }
+
+  const f = data?.financement || {}
+  const hasFinancement = ["montantPrets","apportPersonnel","dureeSouhaitee","tauxInteretMax","mensualiteMax","banque","ressourcesMensuelles","mensualitesEnCours"].some((key) =>
+    hasValue(f?.[key as keyof typeof f])
+  )
+
+  if (hasFinancement) {
+    const financingLines: string[] = []
+    if (hasValue(f.montantPrets)) financingLines.push(`<strong>Montant global des prêts :</strong> ${safe(f.montantPrets)} €`)
+    if (hasValue(f.apportPersonnel)) financingLines.push(`<strong>Apport personnel :</strong> ${safe(f.apportPersonnel)} €`)
+    if (hasValue(f.dureeSouhaitee)) financingLines.push(`<strong>Durée du prêt souhaitée :</strong> ${safe(f.dureeSouhaitee)}`)
+    if (hasValue(f.tauxInteretMax)) financingLines.push(`<strong>Taux d’intérêt maximum accepté :</strong> ${safe(f.tauxInteretMax)} %`)
+    if (hasValue(f.mensualiteMax)) financingLines.push(`<strong>Mensualité maximale souhaitée :</strong> ${safe(f.mensualiteMax)} € / mois`)
+    if (hasValue(f.banque)) financingLines.push(`<strong>Banque :</strong> ${safe(f.banque)}`)
+    if (hasValue(f.ressourcesMensuelles)) financingLines.push(`<strong>Ressources mensuelles :</strong> ${safe(f.ressourcesMensuelles)} € / mois`)
+    if (hasValue(f.mensualitesEnCours)) financingLines.push(`<strong>Mensualités de crédits en cours :</strong> ${safe(f.mensualitesEnCours)} € / mois`)
+
+    if (financingLines.length) {
+      contentHTML += `<div style="margin-bottom:16px;">
+        <h2 style="color:#0072BC;font-size:16px;margin:0 0 8px;">Financement de l'acquisition</h2>
+        <div style="margin-bottom:12px;padding:8px;background:#f8fafc;border-radius:4px;">
+          ${financingLines.join("<br />")}
+        </div>
+      </div>`
+    }
+  }
   
   return `
 <!DOCTYPE html>
@@ -342,6 +374,7 @@ function formatPersonInfoText(p: any, index?: number): string {
 }
 
 function buildEmailText(data: any) {
+  const hasValue = (v?: string | number | null) => Boolean(v !== undefined && v !== null && String(v).trim() !== "")
   const lines: string[] = [
     "⚠️ Ce message est envoyé automatiquement. Merci de ne pas y répondre.",
     "Pour toute question, contactez l'agence au 02 98 26 71 47 ou par mail à contact@alvimobilier.bzh.",
@@ -349,6 +382,9 @@ function buildEmailText(data: any) {
     "Nouveau formulaire acquéreur",
     `Type d'acquéreur : ${data?.type || "non précisé"}`,
     `Nombre d'acquéreurs déclarés : ${data?.nombreVendeurs || "-"}`,
+    "",
+    "Merci d’envoyer les copies de vos pièces d’identité directement à l’agence à l’adresse contact@alvimobilier.bzh.",
+    "Ne répondez pas au mail automatique qui vous transmet cette fiche.",
     "",
   ]
   
@@ -489,6 +525,24 @@ function buildEmailText(data: any) {
     lines.push("")
   }
   
+  const f = data?.financement || {}
+  const hasFinancement = ["montantPrets","apportPersonnel","dureeSouhaitee","tauxInteretMax","mensualiteMax","banque","ressourcesMensuelles","mensualitesEnCours"].some((key) =>
+    hasValue(f?.[key as keyof typeof f])
+  )
+
+  if (hasFinancement) {
+    lines.push("Financement de l'acquisition")
+    if (hasValue(f.montantPrets)) lines.push(`Montant global des prêts : ${safe(f.montantPrets)} €`)
+    if (hasValue(f.apportPersonnel)) lines.push(`Apport personnel : ${safe(f.apportPersonnel)} €`)
+    if (hasValue(f.dureeSouhaitee)) lines.push(`Durée du prêt souhaitée : ${safe(f.dureeSouhaitee)}`)
+    if (hasValue(f.tauxInteretMax)) lines.push(`Taux d’intérêt maximum accepté : ${safe(f.tauxInteretMax)} %`)
+    if (hasValue(f.mensualiteMax)) lines.push(`Mensualité maximale souhaitée : ${safe(f.mensualiteMax)} € / mois`)
+    if (hasValue(f.banque)) lines.push(`Banque : ${safe(f.banque)}`)
+    if (hasValue(f.ressourcesMensuelles)) lines.push(`Ressources mensuelles : ${safe(f.ressourcesMensuelles)} € / mois`)
+    if (hasValue(f.mensualitesEnCours)) lines.push(`Mensualités de crédits en cours : ${safe(f.mensualitesEnCours)} € / mois`)
+    lines.push("")
+  }
+ 
   lines.push("PDF en pièce jointe.")
   lines.push("Message automatique ALV Immobilier")
   
@@ -542,7 +596,7 @@ export async function POST(request: Request) {
     let mailOk = false
     try {
       mailOk = await sendMail({
-        to: process.env.RECIPIENT_EMAIL || "foveau16@gmail.com",
+        to: process.env.RECIPIENT_EMAIL || "contact@alvimobilier.bzh",
         cc: ccList,
         subject: buildAcquereurSubject(body),
         html,

@@ -478,6 +478,13 @@ export default function ALVImmobilierHome() {
                 </p>
                 <p className="ml-6 text-slate-400">29190 Pleyben</p>
               </div>
+              <div className="mt-6">
+                <Link href="/contact-arnaud-evenat">
+                  <Button size="sm" variant="outline" className="border-blue-200 text-blue-100 hover:text-white">
+                    contact d'arnaud EVENAT
+                  </Button>
+                </Link>
+              </div>
             </div>
 
             {/* Informations légales */}

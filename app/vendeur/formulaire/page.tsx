@@ -2786,6 +2786,19 @@ export default function VendeurFormPage() {
       </div>
 
       <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-8">
+      <Card className="p-4 sm:p-5 shadow-lg border-0 bg-gradient-to-br from-purple-50/70 to-pink-50/60">
+        <div className="flex items-start gap-3">
+          <Shield className="h-5 w-5 text-purple-700 mt-0.5" />
+          <div className="space-y-1">
+            <h2 className="text-base sm:text-lg font-semibold text-purple-900">Pièces d’identité à envoyer par mail</h2>
+            <p className="text-sm text-purple-800">
+              Merci d’envoyer les copies de vos pièces d’identité directement à l’agence à l’adresse
+              <span className="font-semibold"> contact@alvimobilier.bzh</span>. Ne répondez pas au mail automatique qui vous enverra la fiche de renseignements.
+            </p>
+          </div>
+        </div>
+      </Card>
+
         <Card className="p-4 sm:p-6 shadow-lg border-0 bg-gradient-to-br from-purple-50/60 to-pink-50/40">
           <div className="flex items-start gap-3">
             <Info className="h-5 w-5 text-purple-600 mt-0.5" />

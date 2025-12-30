@@ -161,6 +161,11 @@ function buildEmailHTML(data: any) {
     <p style="margin:4px 0;"><strong>Type de vendeur :</strong> ${data?.type || "non précisé"}</p>
     <p style="margin:4px 0;"><strong>Nombre de vendeurs déclarés :</strong> ${data?.nombreVendeurs || "-"}</p>
   </div>`
+
+  contentHTML += `<div style="background:#ecfdf3;border:1px solid #bbf7d0;color:#166534;padding:10px 12px;border-radius:6px;margin-bottom:16px;font-size:13px;line-height:1.5;">
+    Merci d’envoyer les copies de vos pièces d’identité directement à l’agence à l’adresse <strong>contact@alvimobilier.bzh</strong>.<br />
+    Ne répondez pas au mail automatique qui vous transmet cette fiche de renseignements.
+  </div>`
   
   // Personne seule
   if (data?.type === "personne_seule" && data?.personne) {
@@ -349,6 +354,9 @@ function buildEmailText(data: any) {
     "Nouveau formulaire vendeur",
     `Type de vendeur : ${data?.type || "non précisé"}`,
     `Nombre de vendeurs déclarés : ${data?.nombreVendeurs || "-"}`,
+    "",
+    "Merci d’envoyer les copies de vos pièces d’identité directement à l’agence à l’adresse contact@alvimobilier.bzh.",
+    "Ne répondez pas au mail automatique qui vous transmet cette fiche.",
     "",
   ]
   
@@ -542,7 +550,7 @@ export async function POST(request: Request) {
     let mailOk = false
     try {
       mailOk = await sendMail({
-        to: process.env.RECIPIENT_EMAIL || "foveau16@gmail.com",
+        to: process.env.RECIPIENT_EMAIL || "contact@alvimobilier.bzh",
         cc: ccList,
         subject: buildVendeurSubject(body),
         html,

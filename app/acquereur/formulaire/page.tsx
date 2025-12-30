@@ -276,6 +276,17 @@ interface AutreSituation {
   email: string
 }
 
+interface FinancementAcquisition {
+  montantPrets: string
+  apportPersonnel: string
+  dureeSouhaitee: string
+  tauxInteretMax: string
+  mensualiteMax: string
+  banque: string
+  ressourcesMensuelles: string
+  mensualitesEnCours: string
+}
+
 interface AcquereurFormState {
   type: AcquereurType
   nombreVendeurs: number
@@ -295,6 +306,7 @@ interface AcquereurFormState {
   mineur: MineurSeller
   majeurProtege: MajeurProtegeSeller
   autreSituation: AutreSituation
+  financement: FinancementAcquisition
 }
 
 const acquereurTypeOptions: Array<{ value: AcquereurType; label: string }> = [
@@ -525,6 +537,17 @@ const createEmptyAutre = (): AutreSituation => ({
   email: ""
 })
 
+const createEmptyFinancement = (): FinancementAcquisition => ({
+  montantPrets: "",
+  apportPersonnel: "",
+  dureeSouhaitee: "",
+  tauxInteretMax: "",
+  mensualiteMax: "",
+  banque: "",
+  ressourcesMensuelles: "",
+  mensualitesEnCours: ""
+})
+
 const resizePersonList = (list: PersonneBuyer[], count: number) => {
   const next = [...list]
   while (next.length < count) {
@@ -547,7 +570,8 @@ const defaultState: AcquereurFormState = {
   personneMorale: createEmptyPersonneMorale(),
   mineur: createEmptyMineur(),
   majeurProtege: createEmptyMajeurProtege(),
-  autreSituation: createEmptyAutre()
+  autreSituation: createEmptyAutre(),
+  financement: createEmptyFinancement()
 }
 
 const computeIdentificationList = (
@@ -813,6 +837,17 @@ const buildSampleAutre = (): AutreSituation => ({
   contactPrenom: sampleFirstName(),
   telephone: buildTestPhone(),
   email: buildTestEmail("autre-situation")
+})
+
+const buildSampleFinancement = (): FinancementAcquisition => ({
+  montantPrets: "220000",
+  apportPersonnel: "30000",
+  dureeSouhaitee: "20 ans",
+  tauxInteretMax: "4,20",
+  mensualiteMax: "1200",
+  banque: "BNP Paribas",
+  ressourcesMensuelles: "4200",
+  mensualitesEnCours: "350"
 })
 
 function SituationMatrimonialeFields({
@@ -1206,62 +1241,6 @@ function PersonBuyerCard({
         </div>
       </ModernFormSection>
 
-      <ModernFormSection
-        title="Représentation"
-        subtitle="Présence ou représentation à la signature"
-        icon={<Users className="h-5 w-5" />}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ModernFormField
-            label="Serez-vous présent(e) en personne pour signer chez le notaire ?"
-            required
-            isMissing={isMissing("representation.seraPresent")}
-            fieldId={fieldId("representation.seraPresent")}
-          >
-            <Select
-              value={data.representation.seraPresent}
-              onValueChange={(val: OuiNon) => updateRepresentation("seraPresent", val)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir une option" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="oui">Oui</SelectItem>
-                <SelectItem value="non">Non</SelectItem>
-              </SelectContent>
-            </Select>
-          </ModernFormField>
-          {data.representation.seraPresent === "non" && (
-            <>
-              <ModernFormField label="Nom du représentant" required isMissing={isMissing("representation.representantNom")} fieldId={fieldId("representation.representantNom")}>
-                <Input
-                  value={data.representation.representantNom}
-                  onChange={(e) => updateRepresentation("representantNom", e.target.value)}
-                />
-              </ModernFormField>
-              <ModernFormField label="Prénom du représentant" required isMissing={isMissing("representation.representantPrenom")} fieldId={fieldId("representation.representantPrenom")}>
-                <Input
-                  value={data.representation.representantPrenom}
-                  onChange={(e) => updateRepresentation("representantPrenom", e.target.value)}
-                />
-              </ModernFormField>
-              <ModernFormField label="Téléphone du représentant" required isMissing={isMissing("representation.representantTelephone")} fieldId={fieldId("representation.representantTelephone")}>
-                <Input
-                  value={data.representation.representantTelephone}
-                  onChange={(e) => updateRepresentation("representantTelephone", e.target.value)}
-                />
-              </ModernFormField>
-              <ModernFormField label="Email du représentant" required isMissing={isMissing("representation.representantEmail")} fieldId={fieldId("representation.representantEmail")}>
-                <Input
-                  value={data.representation.representantEmail}
-                  onChange={(e) => updateRepresentation("representantEmail", e.target.value)}
-                />
-              </ModernFormField>
-            </>
-          )}
-        </div>
-      </ModernFormSection>
-
           <ModernFormSection
             title="Désignation du notaire"
             subtitle="Optionnel"
@@ -1312,6 +1291,124 @@ function PersonBuyerCard({
         <ModernFormField label="Souhaitez-vous ajouter des précisions ?" helpText="Zone libre">
           <Textarea value={data.precisions} onChange={(e) => update("precisions", e.target.value)} rows={3} />
         </ModernFormField>
+      </ModernFormSection>
+    </div>
+  )
+}
+
+function FinancementSection({
+  data,
+  onChange,
+  showValidationErrors = false,
+  missing
+}: {
+  data: FinancementAcquisition
+  onChange: (data: FinancementAcquisition) => void
+  showValidationErrors?: boolean
+  missing?: Record<string, boolean>
+}) {
+  const update = (key: keyof FinancementAcquisition, value: string) => onChange({ ...data, [key]: value })
+  const isMissing = (path: string) => Boolean(showValidationErrors && missing?.[`financement.${path}`])
+
+  return (
+    <div className="space-y-6">
+      <ModernFormSection
+        title="Financement de l’acquisition"
+        subtitle="Projet de financement"
+        icon={<HandCoins className="h-5 w-5" />}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ModernFormField label="Montant global des prêts à solliciter" required isMissing={isMissing("montantPrets")} fieldId="field-financement-montantPrets">
+            <Input
+              type="number"
+              inputMode="decimal"
+              value={data.montantPrets}
+              onChange={(e) => update("montantPrets", e.target.value)}
+              placeholder="Ex : 220000"
+            />
+          </ModernFormField>
+          <ModernFormField label="Apport personnel" required isMissing={isMissing("apportPersonnel")} fieldId="field-financement-apportPersonnel">
+            <Input
+              type="number"
+              inputMode="decimal"
+              value={data.apportPersonnel}
+              onChange={(e) => update("apportPersonnel", e.target.value)}
+              placeholder="Ex : 30000"
+            />
+          </ModernFormField>
+          <ModernFormField label="Durée du prêt souhaitée" required isMissing={isMissing("dureeSouhaitee")} fieldId="field-financement-dureeSouhaitee">
+            <Select value={data.dureeSouhaitee} onValueChange={(val) => update("dureeSouhaitee", val)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionnez une durée" />
+              </SelectTrigger>
+              <SelectContent>
+                {["10 ans", "12 ans", "15 ans", "18 ans", "20 ans", "22 ans", "25 ans", "Autre"].map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </ModernFormField>
+          <ModernFormField label="Taux d’intérêt maximum accepté" required isMissing={isMissing("tauxInteretMax")} fieldId="field-financement-tauxInteretMax">
+            <Input
+              type="text"
+              inputMode="decimal"
+              value={data.tauxInteretMax}
+              onChange={(e) => update("tauxInteretMax", e.target.value)}
+              placeholder="Ex : 4,20"
+            />
+          </ModernFormField>
+          <ModernFormField
+            label="Charges mensuelles maximales (mensualité maximale souhaitée)"
+            required
+            isMissing={isMissing("mensualiteMax")}
+            fieldId="field-financement-mensualiteMax"
+          >
+            <Input
+              type="number"
+              inputMode="decimal"
+              value={data.mensualiteMax}
+              onChange={(e) => update("mensualiteMax", e.target.value)}
+              placeholder="Ex : 1200"
+            />
+          </ModernFormField>
+        </div>
+      </ModernFormSection>
+
+      <ModernFormSection title="Banque (facultatif)" subtitle="Optionnel" icon={<Building2 className="h-5 w-5" />}>
+        <ModernFormField label="Banque">
+          <Input value={data.banque} onChange={(e) => update("banque", e.target.value)} placeholder="Ex : BNP Paribas" />
+        </ModernFormField>
+      </ModernFormSection>
+
+      <ModernFormSection title="Situation financière" subtitle="Ressources et charges" icon={<Shield className="h-5 w-5" />}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ModernFormField label="Ressources mensuelles" required isMissing={isMissing("ressourcesMensuelles")} fieldId="field-financement-ressourcesMensuelles">
+            <Input
+              type="number"
+              inputMode="decimal"
+              value={data.ressourcesMensuelles}
+              onChange={(e) => update("ressourcesMensuelles", e.target.value)}
+              placeholder="Ex : 4200"
+            />
+          </ModernFormField>
+          <ModernFormField
+            label="Mensualités de crédits en cours"
+            helpText="Indiquez le montant total de vos mensualités de crédits en cours (crédit auto, crédit à la consommation, etc.)."
+            required
+            isMissing={isMissing("mensualitesEnCours")}
+            fieldId="field-financement-mensualitesEnCours"
+          >
+            <Input
+              type="number"
+              inputMode="decimal"
+              value={data.mensualitesEnCours}
+              onChange={(e) => update("mensualitesEnCours", e.target.value)}
+              placeholder="Ex : 350"
+            />
+          </ModernFormField>
+        </div>
       </ModernFormSection>
     </div>
   )
@@ -2396,18 +2493,27 @@ export default function AcquereurFormPage() {
       require("residenceFiscaleAdresse")
     }
     require("situationMatrimoniale")
-    if (p.representation.seraPresent === "non") {
-      if (!p.representation.representantNom.trim()) missing.push(`${prefix}.representantNom`)
-      if (!p.representation.representantPrenom.trim()) missing.push(`${prefix}.representantPrenom`)
-      if (!p.representation.representantTelephone.trim()) missing.push(`${prefix}.representantTelephone`)
-      if (!p.representation.representantEmail.trim()) missing.push(`${prefix}.representantEmail`)
-    }
     if (p.notaireDesigne === "oui") {
       if (!p.notaireNom.trim()) missing.push(`${prefix}.notaireNom`)
       if (!p.notaireVille.trim()) missing.push(`${prefix}.notaireVille`)
     }
     return missing
   }
+
+const validateFinancement = (f: FinancementAcquisition): string[] => {
+  const missing: string[] = []
+  const require = (key: keyof FinancementAcquisition) => {
+    if (!f[key] || String(f[key]).trim() === "") missing.push(`financement.${key}`)
+  }
+  require("montantPrets")
+  require("apportPersonnel")
+  require("dureeSouhaitee")
+  require("tauxInteretMax")
+  require("mensualiteMax")
+  require("ressourcesMensuelles")
+  require("mensualitesEnCours")
+  return missing
+}
 
   const handleSubmit = async () => {
     setShowValidationErrors(false)
@@ -2443,6 +2549,8 @@ export default function AcquereurFormPage() {
       missing.push(...validatePerson(state.couple.vendeur1, "couple.vendeur1"))
       missing.push(...validatePerson(state.couple.vendeur2, "couple.vendeur2"))
     }
+
+    missing.push(...validateFinancement(state.financement))
 
     if (missing.length) {
       const map: Record<string, boolean> = {}
@@ -2681,7 +2789,8 @@ export default function AcquereurFormPage() {
         personneMorale: buildSamplePersonneMorale(),
         mineur: buildSampleMineur(),
         majeurProtege: buildSampleMajeurProtege(),
-        autreSituation: buildSampleAutre()
+        autreSituation: buildSampleAutre(),
+        financement: buildSampleFinancement()
       }
     })
     
@@ -2786,6 +2895,19 @@ export default function AcquereurFormPage() {
       </div>
 
       <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-8">
+      <Card className="p-4 sm:p-5 shadow-lg border-0 bg-gradient-to-br from-emerald-50/70 to-amber-50/60">
+        <div className="flex items-start gap-3">
+          <Shield className="h-5 w-5 text-emerald-700 mt-0.5" />
+          <div className="space-y-1">
+            <h2 className="text-base sm:text-lg font-semibold text-emerald-900">Pièces d’identité à envoyer par mail</h2>
+            <p className="text-sm text-emerald-800">
+              Merci d’envoyer les copies de vos pièces d’identité directement à l’agence à l’adresse
+              <span className="font-semibold"> contact@alvimobilier.bzh</span>. Ne répondez pas au mail automatique qui vous enverra la fiche de renseignements.
+            </p>
+          </div>
+        </div>
+      </Card>
+
         <Card className="p-4 sm:p-6 shadow-lg border-0 bg-gradient-to-br from-amber-50/60 to-orange-50/40">
           <div className="flex items-start gap-3">
             <Info className="h-5 w-5 text-amber-600 mt-0.5" />
@@ -3078,6 +3200,13 @@ export default function AcquereurFormPage() {
         {state.type === "autre" && (
           <AutreSituationSection data={state.autreSituation} onChange={(data) => setState((prev) => ({ ...prev, autreSituation: data }))} />
         )}
+
+        <FinancementSection
+          data={state.financement}
+          onChange={(data) => setState((prev) => ({ ...prev, financement: data }))}
+          showValidationErrors={showValidationErrors}
+          missing={missingFields}
+        />
 
         <div className="flex items-center justify-center gap-3 pt-4">
           <Button

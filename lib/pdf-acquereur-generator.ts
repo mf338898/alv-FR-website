@@ -381,7 +381,7 @@ function drawLabeledRowFromPrepared(ctx: DocContext, row: Row, prepared: Prepare
 }
 
 // Single column aligned to left (for 1 person), with pagination
-async function drawSingleLeftAlignedColumnWithBreaks(ctx: DocContext, p?: any, personTitle: string = "Acquéreur") {
+async function drawSingleLeftAlignedColumnWithBreaks(ctx: DocContext, p?: any, personTitle: string = "Acquéreur", financement?: any) {
   // Utiliser toute la largeur disponible, aligné à gauche
   const total = PAGE_WIDTH - 2 * MARGIN
   const colWidth = total // Utiliser toute la largeur disponible
@@ -531,6 +531,8 @@ async function drawSingleLeftAlignedColumnWithBreaks(ctx: DocContext, p?: any, p
     drawLabeledRowFromPrepared(ctx, row, prep, xLabel, xValue)
   }
 
+  await drawFinancement(ctx, financement)
+
   // Précisions complémentaires
   if (nonEmpty(p?.precisions)) {
     await ensureSpace(ctx, 30)
@@ -559,6 +561,54 @@ async function drawRowsSection(ctx: DocContext, title: string, rows: Row[], xLef
     const prep = prepareRowParts(row, fontValue, colWidth, labelWidth)
     await ensureSpace(ctx, prep.totalHeight + 3)
     drawLabeledRowFromPrepared(ctx, row, prep, xLabel, xValue)
+  }
+}
+
+const FINANCEMENT_KEYS = [
+  "montantPrets",
+  "apportPersonnel",
+  "dureeSouhaitee",
+  "tauxInteretMax",
+  "mensualiteMax",
+  "banque",
+  "ressourcesMensuelles",
+  "mensualitesEnCours",
+]
+
+function hasFinancementData(financement?: any) {
+  if (!financement) return false
+  return FINANCEMENT_KEYS.some((key) => nonEmpty(financement?.[key]))
+}
+
+async function drawFinancement(ctx: DocContext, financement?: any) {
+  if (!hasFinancementData(financement)) return
+
+  const f = financement || {}
+  const projetRows: Row[] = []
+  if (nonEmpty(f.montantPrets)) projetRows.push({ label: "Montant global des prêts (€)", value: toValue(f.montantPrets) })
+  if (nonEmpty(f.apportPersonnel)) projetRows.push({ label: "Apport personnel (€)", value: toValue(f.apportPersonnel) })
+  if (nonEmpty(f.dureeSouhaitee)) projetRows.push({ label: "Durée du prêt souhaitée", value: toValue(f.dureeSouhaitee) })
+  if (nonEmpty(f.tauxInteretMax)) projetRows.push({ label: "Taux d’intérêt maximum (%)", value: toValue(f.tauxInteretMax) })
+  if (nonEmpty(f.mensualiteMax)) projetRows.push({ label: "Mensualité maximale (€ / mois)", value: toValue(f.mensualiteMax) })
+
+  if (projetRows.length) {
+    await drawRowsSection(ctx, "Financement – Projet de financement", projetRows)
+  }
+
+  if (nonEmpty(f.banque)) {
+    await drawRowsSection(ctx, "Financement – Banque (facultatif)", [{ label: "Banque", value: toValue(f.banque) }])
+  }
+
+  const situationRows: Row[] = []
+  if (nonEmpty(f.ressourcesMensuelles)) {
+    situationRows.push({ label: "Ressources mensuelles (€ / mois)", value: toValue(f.ressourcesMensuelles) })
+  }
+  if (nonEmpty(f.mensualitesEnCours)) {
+    situationRows.push({ label: "Mensualités de crédits en cours (€ / mois)", value: toValue(f.mensualitesEnCours) })
+  }
+
+  if (situationRows.length) {
+    await drawRowsSection(ctx, "Financement – Situation financière", situationRows)
   }
 }
 
@@ -619,6 +669,8 @@ async function drawSociete(ctx: DocContext, data: any) {
     ])
   }
 
+  await drawFinancement(ctx, data?.financement)
+
   if (nonEmpty(soc.precisions)) {
     await drawRowsSection(ctx, "Précisions complémentaires", [{ label: "Précisions", value: toValue(soc.precisions) }])
   }
@@ -636,6 +688,8 @@ async function drawEI(ctx: DocContext, data: any) {
     { label: "Code APE communiqué", value: toValue(ei.codeApeChoix) },
     { label: "Code APE", value: toValue(ei.codeApe) },
   ])
+
+  await drawFinancement(ctx, data?.financement)
 }
 
 async function drawAssociation(ctx: DocContext, data: any) {
@@ -672,6 +726,8 @@ async function drawAssociation(ctx: DocContext, data: any) {
     ])
   }
 
+  await drawFinancement(ctx, data?.financement)
+
   if (nonEmpty(assoc.precisions)) {
     await drawRowsSection(ctx, "Précisions complémentaires", [{ label: "Précisions", value: toValue(assoc.precisions) }])
   }
@@ -707,6 +763,8 @@ async function drawPersonneMorale(ctx: DocContext, data: any) {
       { label: "Email", value: toValue(repAutre.email) },
     ])
   }
+
+  await drawFinancement(ctx, data?.financement)
 
   if (nonEmpty(pm.precisions)) {
     await drawRowsSection(ctx, "Précisions complémentaires", [{ label: "Précisions", value: toValue(pm.precisions) }])
@@ -772,6 +830,8 @@ async function drawMineur(ctx: DocContext, data: any) {
     ])
   }
 
+  await drawFinancement(ctx, data?.financement)
+
   if (nonEmpty(m.precisions)) {
     await drawRowsSection(ctx, "Précisions complémentaires", [{ label: "Précisions", value: toValue(m.precisions) }])
   }
@@ -797,6 +857,8 @@ async function drawMajeurProtege(ctx: DocContext, data: any) {
     { label: "Email", value: toValue(mp.email) },
   ])
 
+  await drawFinancement(ctx, data?.financement)
+
   if (nonEmpty(mp.precisions)) {
     await drawRowsSection(ctx, "Précisions complémentaires", [{ label: "Précisions", value: toValue(mp.precisions) }])
   }
@@ -811,6 +873,8 @@ async function drawAutreSituation(ctx: DocContext, data: any) {
     { label: "Téléphone", value: toValue(a.telephone) },
     { label: "Email", value: toValue(a.email) },
   ])
+
+  await drawFinancement(ctx, data?.financement)
 }
 
 // Filename
@@ -868,7 +932,7 @@ export async function generateAcquereurPdf(data: any): Promise<Buffer> {
       fonts: { reg: fontReg, bold: fontBold },
     }
 
-    await drawSingleLeftAlignedColumnWithBreaks(ctx, data.personne, "Acquéreur")
+    await drawSingleLeftAlignedColumnWithBreaks(ctx, data.personne, "Acquéreur", data.financement)
     drawFooter(ctx.page, fontReg)
   } else if (data?.type?.startsWith("couple")) {
     // Deux pages : une par personne
@@ -888,7 +952,7 @@ export async function generateAcquereurPdf(data: any): Promise<Buffer> {
     }
 
     const civilite1 = normalizeCivilite(acquereur1?.civilite)
-    await drawSingleLeftAlignedColumnWithBreaks(ctx1, acquereur1, `Acquéreur 1 - ${civilite1}`)
+    await drawSingleLeftAlignedColumnWithBreaks(ctx1, acquereur1, `Acquéreur 1 - ${civilite1}`, data.financement)
     drawFooter(ctx1.page, fontReg)
 
     // Page 2 - Acquéreur 2
@@ -904,7 +968,7 @@ export async function generateAcquereurPdf(data: any): Promise<Buffer> {
     }
 
     const civilite2 = normalizeCivilite(acquereur2?.civilite)
-    await drawSingleLeftAlignedColumnWithBreaks(ctx2, acquereur2, `Acquéreur 2 - ${civilite2}`)
+    await drawSingleLeftAlignedColumnWithBreaks(ctx2, acquereur2, `Acquéreur 2 - ${civilite2}`, data.financement)
     drawFooter(ctx2.page, fontReg)
   } else if (data?.type === "indivision" && Array.isArray(data?.indivision) && data.indivision.length > 0) {
     // Indivision : une page par personne
@@ -938,7 +1002,7 @@ export async function generateAcquereurPdf(data: any): Promise<Buffer> {
         }
 
         const civilite = normalizeCivilite(personne?.civilite)
-        await drawSingleLeftAlignedColumnWithBreaks(ctx, personne, `Acquéreur ${i + 1} - ${civilite}`)
+        await drawSingleLeftAlignedColumnWithBreaks(ctx, personne, `Acquéreur ${i + 1} - ${civilite}`, data.financement)
         drawFooter(ctx.page, fontReg)
       }
     }
