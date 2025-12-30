@@ -305,11 +305,15 @@ function buildEmailHTML(data: any) {
 
   if (hasFinancement) {
     const financingLines: string[] = []
-    if (hasValue(f.montantPrets)) financingLines.push(`<strong>Montant global des prêts :</strong> ${safe(f.montantPrets)} €`)
-    if (hasValue(f.apportPersonnel)) financingLines.push(`<strong>Apport personnel :</strong> ${safe(f.apportPersonnel)} €`)
-    if (hasValue(f.dureeSouhaitee)) financingLines.push(`<strong>Durée du prêt souhaitée :</strong> ${safe(f.dureeSouhaitee)}`)
-    if (hasValue(f.tauxInteretMax)) financingLines.push(`<strong>Taux d’intérêt maximum accepté :</strong> ${safe(f.tauxInteretMax)} %`)
-    if (hasValue(f.mensualiteMax)) financingLines.push(`<strong>Mensualité maximale souhaitée :</strong> ${safe(f.mensualiteMax)} € / mois`)
+    if (f.achatComptant) {
+      financingLines.push(`<strong>Mode de financement :</strong> Achat comptant (aucun prêt sollicité)`)
+    } else {
+      if (hasValue(f.montantPrets)) financingLines.push(`<strong>Montant global des prêts :</strong> ${safe(f.montantPrets)} €`)
+      if (hasValue(f.apportPersonnel)) financingLines.push(`<strong>Apport personnel :</strong> ${safe(f.apportPersonnel)} €`)
+      if (hasValue(f.dureeSouhaitee)) financingLines.push(`<strong>Durée du prêt souhaitée :</strong> ${safe(f.dureeSouhaitee)}`)
+      if (hasValue(f.tauxInteretMax)) financingLines.push(`<strong>Taux d’intérêt maximum accepté :</strong> ${safe(f.tauxInteretMax)} %`)
+      if (hasValue(f.mensualiteMax)) financingLines.push(`<strong>Mensualité maximale souhaitée :</strong> ${safe(f.mensualiteMax)} € / mois`)
+    }
     if (hasValue(f.banque)) financingLines.push(`<strong>Banque :</strong> ${safe(f.banque)}`)
     if (hasValue(f.ressourcesMensuelles)) financingLines.push(`<strong>Ressources mensuelles :</strong> ${safe(f.ressourcesMensuelles)} € / mois`)
     if (hasValue(f.mensualitesEnCours)) financingLines.push(`<strong>Mensualités de crédits en cours :</strong> ${safe(f.mensualitesEnCours)} € / mois`)
@@ -532,11 +536,15 @@ function buildEmailText(data: any) {
 
   if (hasFinancement) {
     lines.push("Financement de l'acquisition")
-    if (hasValue(f.montantPrets)) lines.push(`Montant global des prêts : ${safe(f.montantPrets)} €`)
-    if (hasValue(f.apportPersonnel)) lines.push(`Apport personnel : ${safe(f.apportPersonnel)} €`)
-    if (hasValue(f.dureeSouhaitee)) lines.push(`Durée du prêt souhaitée : ${safe(f.dureeSouhaitee)}`)
-    if (hasValue(f.tauxInteretMax)) lines.push(`Taux d’intérêt maximum accepté : ${safe(f.tauxInteretMax)} %`)
-    if (hasValue(f.mensualiteMax)) lines.push(`Mensualité maximale souhaitée : ${safe(f.mensualiteMax)} € / mois`)
+    if (f.achatComptant) {
+      lines.push("Mode de financement : Achat comptant (aucun prêt sollicité)")
+    } else {
+      if (hasValue(f.montantPrets)) lines.push(`Montant global des prêts : ${safe(f.montantPrets)} €`)
+      if (hasValue(f.apportPersonnel)) lines.push(`Apport personnel : ${safe(f.apportPersonnel)} €`)
+      if (hasValue(f.dureeSouhaitee)) lines.push(`Durée du prêt souhaitée : ${safe(f.dureeSouhaitee)}`)
+      if (hasValue(f.tauxInteretMax)) lines.push(`Taux d’intérêt maximum accepté : ${safe(f.tauxInteretMax)} %`)
+      if (hasValue(f.mensualiteMax)) lines.push(`Mensualité maximale souhaitée : ${safe(f.mensualiteMax)} € / mois`)
+    }
     if (hasValue(f.banque)) lines.push(`Banque : ${safe(f.banque)}`)
     if (hasValue(f.ressourcesMensuelles)) lines.push(`Ressources mensuelles : ${safe(f.ressourcesMensuelles)} € / mois`)
     if (hasValue(f.mensualitesEnCours)) lines.push(`Mensualités de crédits en cours : ${safe(f.mensualitesEnCours)} € / mois`)

@@ -585,11 +585,15 @@ async function drawFinancement(ctx: DocContext, financement?: any) {
 
   const f = financement || {}
   const projetRows: Row[] = []
-  if (nonEmpty(f.montantPrets)) projetRows.push({ label: "Montant global des prêts (€)", value: toValue(f.montantPrets) })
-  if (nonEmpty(f.apportPersonnel)) projetRows.push({ label: "Apport personnel (€)", value: toValue(f.apportPersonnel) })
-  if (nonEmpty(f.dureeSouhaitee)) projetRows.push({ label: "Durée du prêt souhaitée", value: toValue(f.dureeSouhaitee) })
-  if (nonEmpty(f.tauxInteretMax)) projetRows.push({ label: "Taux d’intérêt maximum (%)", value: toValue(f.tauxInteretMax) })
-  if (nonEmpty(f.mensualiteMax)) projetRows.push({ label: "Mensualité maximale (€ / mois)", value: toValue(f.mensualiteMax) })
+  if (f.achatComptant) {
+    projetRows.push({ label: "Mode de financement", value: "Achat comptant (aucun prêt sollicité)" })
+  } else {
+    if (nonEmpty(f.montantPrets)) projetRows.push({ label: "Montant global des prêts (€)", value: toValue(f.montantPrets) })
+    if (nonEmpty(f.apportPersonnel)) projetRows.push({ label: "Apport personnel (€)", value: toValue(f.apportPersonnel) })
+    if (nonEmpty(f.dureeSouhaitee)) projetRows.push({ label: "Durée du prêt souhaitée", value: toValue(f.dureeSouhaitee) })
+    if (nonEmpty(f.tauxInteretMax)) projetRows.push({ label: "Taux d’intérêt maximum (%)", value: toValue(f.tauxInteretMax) })
+    if (nonEmpty(f.mensualiteMax)) projetRows.push({ label: "Mensualité maximale (€ / mois)", value: toValue(f.mensualiteMax) })
+  }
 
   if (projetRows.length) {
     await drawRowsSection(ctx, "Financement – Projet de financement", projetRows)

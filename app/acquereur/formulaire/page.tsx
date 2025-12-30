@@ -277,6 +277,7 @@ interface AutreSituation {
 }
 
 interface FinancementAcquisition {
+  achatComptant: boolean
   montantPrets: string
   apportPersonnel: string
   dureeSouhaitee: string
@@ -538,6 +539,7 @@ const createEmptyAutre = (): AutreSituation => ({
 })
 
 const createEmptyFinancement = (): FinancementAcquisition => ({
+  achatComptant: false,
   montantPrets: "",
   apportPersonnel: "",
   dureeSouhaitee: "",
@@ -840,6 +842,7 @@ const buildSampleAutre = (): AutreSituation => ({
 })
 
 const buildSampleFinancement = (): FinancementAcquisition => ({
+  achatComptant: false,
   montantPrets: "220000",
   apportPersonnel: "30000",
   dureeSouhaitee: "20 ans",
@@ -1307,8 +1310,9 @@ function FinancementSection({
   showValidationErrors?: boolean
   missing?: Record<string, boolean>
 }) {
-  const update = (key: keyof FinancementAcquisition, value: string) => onChange({ ...data, [key]: value })
+  const update = (key: keyof FinancementAcquisition, value: string | boolean) => onChange({ ...data, [key]: value } as FinancementAcquisition)
   const isMissing = (path: string) => Boolean(showValidationErrors && missing?.[`financement.${path}`])
+  const disableLoanFields = data.achatComptant === true
 
   return (
     <div className="space-y-6">
@@ -1317,11 +1321,46 @@ function FinancementSection({
         subtitle="Projet de financement"
         icon={<HandCoins className="h-5 w-5" />}
       >
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-3 sm:p-4 mb-4">
+          <label className="flex items-start gap-3 text-sm text-slate-800">
+            <input
+              type="checkbox"
+              className="mt-0.5 h-4 w-4 rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500"
+              checked={data.achatComptant}
+              onChange={(e) => {
+                const checked = e.target.checked
+                if (checked) {
+                  onChange({
+                    ...data,
+                    achatComptant: true,
+                    montantPrets: "",
+                    dureeSouhaitee: "",
+                    tauxInteretMax: "",
+                    mensualiteMax: "",
+                  })
+                } else {
+                  onChange({ ...data, achatComptant: false })
+                }
+              }}
+            />
+            <span>
+              <span className="font-semibold text-emerald-900">Achat comptant / aucun prêt</span>
+              <p className="text-xs text-emerald-800 mt-1">Cochez si vous n’avez aucun prêt à solliciter.</p>
+            </span>
+          </label>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ModernFormField label="Montant global des prêts à solliciter" required isMissing={isMissing("montantPrets")} fieldId="field-financement-montantPrets">
+          <ModernFormField
+            label="Montant global des prêts à solliciter"
+            required={!disableLoanFields}
+            isMissing={isMissing("montantPrets")}
+            fieldId="field-financement-montantPrets"
+          >
             <Input
               type="number"
               inputMode="decimal"
+              disabled={disableLoanFields}
               value={data.montantPrets}
               onChange={(e) => update("montantPrets", e.target.value)}
               placeholder="Ex : 220000"
@@ -1336,8 +1375,17 @@ function FinancementSection({
               placeholder="Ex : 30000"
             />
           </ModernFormField>
-          <ModernFormField label="Durée du prêt souhaitée" required isMissing={isMissing("dureeSouhaitee")} fieldId="field-financement-dureeSouhaitee">
-            <Select value={data.dureeSouhaitee} onValueChange={(val) => update("dureeSouhaitee", val)}>
+          <ModernFormField
+            label="Durée du prêt souhaitée"
+            required={!disableLoanFields}
+            isMissing={isMissing("dureeSouhaitee")}
+            fieldId="field-financement-dureeSouhaitee"
+          >
+            <Select
+              value={data.dureeSouhaitee}
+              onValueChange={(val) => update("dureeSouhaitee", val)}
+              disabled={disableLoanFields}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionnez une durée" />
               </SelectTrigger>
@@ -1350,10 +1398,16 @@ function FinancementSection({
               </SelectContent>
             </Select>
           </ModernFormField>
-          <ModernFormField label="Taux d’intérêt maximum accepté" required isMissing={isMissing("tauxInteretMax")} fieldId="field-financement-tauxInteretMax">
+          <ModernFormField
+            label="Taux d’intérêt maximum accepté"
+            required={!disableLoanFields}
+            isMissing={isMissing("tauxInteretMax")}
+            fieldId="field-financement-tauxInteretMax"
+          >
             <Input
               type="text"
               inputMode="decimal"
+              disabled={disableLoanFields}
               value={data.tauxInteretMax}
               onChange={(e) => update("tauxInteretMax", e.target.value)}
               placeholder="Ex : 4,20"
@@ -1361,13 +1415,14 @@ function FinancementSection({
           </ModernFormField>
           <ModernFormField
             label="Charges mensuelles maximales (mensualité maximale souhaitée)"
-            required
+            required={!disableLoanFields}
             isMissing={isMissing("mensualiteMax")}
             fieldId="field-financement-mensualiteMax"
           >
             <Input
               type="number"
               inputMode="decimal"
+              disabled={disableLoanFields}
               value={data.mensualiteMax}
               onChange={(e) => update("mensualiteMax", e.target.value)}
               placeholder="Ex : 1200"
@@ -2505,11 +2560,13 @@ const validateFinancement = (f: FinancementAcquisition): string[] => {
   const require = (key: keyof FinancementAcquisition) => {
     if (!f[key] || String(f[key]).trim() === "") missing.push(`financement.${key}`)
   }
-  require("montantPrets")
+  if (!f.achatComptant) {
+    require("montantPrets")
+    require("dureeSouhaitee")
+    require("tauxInteretMax")
+    require("mensualiteMax")
+  }
   require("apportPersonnel")
-  require("dureeSouhaitee")
-  require("tauxInteretMax")
-  require("mensualiteMax")
   require("ressourcesMensuelles")
   require("mensualitesEnCours")
   return missing
