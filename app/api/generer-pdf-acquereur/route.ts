@@ -163,9 +163,7 @@ function buildEmailHTML(_data: any) {
     <h1 style="color:#0072BC;font-size:20px;margin:0 0 12px;">Accusé de réception — fiche de renseignement acquéreur</h1>
     <p style="margin:0 0 12px;">Bonjour,</p>
     <p style="margin:0 0 16px;">✅ Nous accusons bonne réception de votre fiche de renseignement acquéreur.</p>
-    <p style="margin:0 0 8px;">Pour la suite, merci de :</p>
-    <p style="margin:0 0 4px;"><strong>1)</strong> Vérifier votre fiche</p>
-    <p style="margin:0 0 8px;"><strong>2)</strong> Nous transmettre les documents ci-dessous (selon votre situation)</p>
+    <p style="margin:0 0 8px;">Pour la suite, merci de nous transmettre les documents listés ci-dessous :</p>
     <p style="margin:0 0 4px;"><strong>Identité / coordonnées (obligatoire)</strong></p>
     <ul style="margin:0 0 12px 20px;padding:0;">
       <li>Pièce d'identité en cours de validité (recto/verso)</li>
@@ -239,9 +237,7 @@ function buildEmailText(_data: any) {
     "",
     "✅ Nous accusons bonne réception de votre fiche de renseignement acquéreur.",
     "",
-    "Pour la suite, merci de :",
-    "1) Vérifier votre fiche",
-    "2) Nous transmettre les documents ci-dessous (selon votre situation)",
+    "Pour la suite, merci de nous transmettre les documents listés ci-dessous :",
     "",
     "Identité / coordonnées (obligatoire)",
     "- Pièce d'identité en cours de validité (recto/verso)",

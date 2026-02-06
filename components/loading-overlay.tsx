@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import Image from "next/image"
 import { Loader2, FileText, CheckCircle2, Clock } from "lucide-react"
 
@@ -9,13 +9,19 @@ type LoadingOverlayProps = {
   message?: string
   isSuccess?: boolean
   onClose?: () => void
+  successTitle?: string
+  successMessage?: string
+  successFooter?: ReactNode
 }
 
 export function LoadingOverlay({
   show = false,
   message = "Veuillez patienter… Votre dossier est en cours de traitement",
   isSuccess = false,
-  onClose
+  onClose,
+  successTitle,
+  successMessage,
+  successFooter
 }: LoadingOverlayProps) {
   const [progress, setProgress] = useState(0)
   const [currentStep, setCurrentStep] = useState(0)
@@ -107,11 +113,13 @@ export function LoadingOverlay({
           {/* Titre et message */}
           <div className="space-y-2">
             <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-              {isSuccess ? "Formulaire envoyé avec succès !" : "Génération en cours..."}
+              {isSuccess
+                ? (successTitle ?? "Formulaire envoyé avec succès !")
+                : "Génération en cours..."}
             </h2>
             <p className="text-sm sm:text-base text-slate-600 max-w-sm">
-              {isSuccess 
-                ? "Votre formulaire a été envoyé avec succès. Un email de confirmation a été envoyé avec votre dossier PDF."
+              {isSuccess
+                ? (successMessage ?? "Votre formulaire a été envoyé avec succès. Un email de confirmation a été envoyé avec votre dossier PDF.")
                 : message
               }
             </p>
@@ -165,6 +173,7 @@ export function LoadingOverlay({
               >
                 Retour à l'accueil
               </button>
+              {successFooter}
               <p className="text-xs text-slate-500 text-center">
                 Suivez notre agence :{" "}
                 <a

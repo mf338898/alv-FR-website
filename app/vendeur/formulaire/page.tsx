@@ -2512,6 +2512,13 @@ export default function VendeurFormPage() {
           setIsSuccess(false)
           router.push("/")
         }}
+        successTitle="Votre formulaire a bien été envoyé ✅"
+        successMessage="Vous allez recevoir un email contenant votre PDF et la liste des documents à transmettre. Si ce n'est pas déjà fait, merci d'envoyer les documents à contact@alvimobilier.bzh"
+        successFooter={
+          <p className="text-xs text-slate-500 text-center mt-2 max-w-xs">
+            Email non reçu ? Attendez 2 minutes, vérifiez les spams, puis contactez-nous : 02 98 26 71 47.
+          </p>
+        }
       />
 
       {errorMessage && (
