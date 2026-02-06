@@ -163,29 +163,22 @@ function buildEmailHTML(_data: any) {
     <h1 style="color:#0072BC;font-size:20px;margin:0 0 12px;">Accusé de réception — fiche de renseignement acquéreur</h1>
     <p style="margin:0 0 12px;">Bonjour,</p>
     <p style="margin:0 0 16px;">✅ Nous accusons bonne réception de votre fiche de renseignement acquéreur.</p>
-    <p style="margin:0 0 8px;">Pour la suite, merci de nous transmettre les documents listés ci-dessous :</p>
+    <p style="margin:0 0 8px;">Pour la suite, merci de nous transmettre les documents ci-dessous (selon votre situation)</p>
     <p style="margin:0 0 4px;"><strong>Identité / coordonnées (obligatoire)</strong></p>
     <ul style="margin:0 0 12px 20px;padding:0;">
       <li>Pièce d'identité en cours de validité (recto/verso)</li>
-      <li>Justificatif de domicile de moins de 3 mois</li>
-      <li>RIB</li>
     </ul>
     <p style="margin:0 0 4px;"><strong>Situation familiale (si concerné)</strong></p>
     <ul style="margin:0 0 12px 20px;padding:0;">
       <li>Livret de famille</li>
       <li>Contrat de mariage / PACS</li>
-      <li>En cas de divorce : jugement / convention définitive</li>
     </ul>
     <p style="margin:0 0 4px;"><strong>Financement</strong></p>
     <p style="margin:0 0 4px;">Si achat avec prêt :</p>
     <ul style="margin:0 0 4px 20px;padding:0;">
       <li>Accord de principe / simulation bancaire ou courtier (si disponible)</li>
-      <li>Montant de l'apport (et justificatif si demandé)</li>
     </ul>
-    <p style="margin:0 0 4px;">Si achat comptant :</p>
-    <ul style="margin:0 0 12px 20px;padding:0;">
-      <li>Attestation bancaire / justificatif de provenance des fonds (souvent demandé par le notaire)</li>
-    </ul>
+    <p style="margin:0 0 4px;">Si achat comptant : Attestation bancaire</p>
     <p style="margin:0 0 16px;">📩 Envoi des documents : <a href="mailto:contact@alvimobilier.bzh">contact@alvimobilier.bzh</a></p>
     <p style="margin:0 0 4px;">Merci,</p>
     <p style="margin:0 0 4px;"><strong>ALV Immobilier</strong></p>
@@ -237,24 +230,20 @@ function buildEmailText(_data: any) {
     "",
     "✅ Nous accusons bonne réception de votre fiche de renseignement acquéreur.",
     "",
-    "Pour la suite, merci de nous transmettre les documents listés ci-dessous :",
+    "Pour la suite, merci de nous transmettre les documents ci-dessous (selon votre situation)",
     "",
     "Identité / coordonnées (obligatoire)",
     "- Pièce d'identité en cours de validité (recto/verso)",
-    "- Justificatif de domicile de moins de 3 mois",
-    "- RIB",
     "",
     "Situation familiale (si concerné)",
     "- Livret de famille",
     "- Contrat de mariage / PACS",
-    "- En cas de divorce : jugement / convention définitive",
     "",
     "Financement",
     "Si achat avec prêt :",
     "- Accord de principe / simulation bancaire ou courtier (si disponible)",
-    "- Montant de l'apport (et justificatif si demandé)",
-    "Si achat comptant :",
-    "- Attestation bancaire / justificatif de provenance des fonds (souvent demandé par le notaire)",
+    "",
+    "Si achat comptant : Attestation bancaire",
     "",
     "📩 Envoi des documents : contact@alvimobilier.bzh",
     "",
