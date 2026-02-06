@@ -281,6 +281,7 @@ interface FinancementAcquisition {
   montantPrets: string
   apportPersonnel: string
   dureeSouhaitee: string
+  dureeSouhaiteeAutre: string
   tauxInteretMax: string
   mensualiteMax: string
   banque: string
@@ -543,6 +544,7 @@ const createEmptyFinancement = (): FinancementAcquisition => ({
   montantPrets: "",
   apportPersonnel: "",
   dureeSouhaitee: "",
+  dureeSouhaiteeAutre: "",
   tauxInteretMax: "",
   mensualiteMax: "",
   banque: "",
@@ -846,6 +848,7 @@ const buildSampleFinancement = (): FinancementAcquisition => ({
   montantPrets: "220000",
   apportPersonnel: "30000",
   dureeSouhaitee: "20 ans",
+  dureeSouhaiteeAutre: "",
   tauxInteretMax: "4,20",
   mensualiteMax: "1200",
   banque: "BNP Paribas",
@@ -1056,7 +1059,6 @@ function PersonBuyerCard({
   title,
   data,
   onChange,
-  showResidenceDetails = false,
   showCivilite = false,
   showValidationErrors = false,
   missing,
@@ -1065,7 +1067,6 @@ function PersonBuyerCard({
   title: string
   data: PersonneBuyer
   onChange: (data: PersonneBuyer) => void
-  showResidenceDetails?: boolean
   showCivilite?: boolean
   showValidationErrors?: boolean
   missing?: Record<string, boolean>
@@ -1082,13 +1083,6 @@ function PersonBuyerCard({
         ...data.representation,
         [key]: value
       }
-    })
-  }
-
-  const updateNotaire = (key: "notaireDesigne" | "notaireNom" | "notaireVille", value: string | OuiNon) => {
-    onChange({
-      ...data,
-      [key]: value
     })
   }
 
@@ -1157,61 +1151,6 @@ function PersonBuyerCard({
       </ModernFormSection>
 
       <ModernFormSection
-        title="Résidence fiscale"
-        subtitle="Question obligatoire"
-        icon={<Shield className="h-5 w-5" />}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ModernFormField
-            label="Avez-vous votre résidence fiscale en France ?"
-            required
-            isMissing={isMissing("residenceFiscaleFrance")}
-            fieldId={fieldId("residenceFiscaleFrance")}
-          >
-            <Select value={data.residenceFiscaleFrance} onValueChange={(val: OuiNon) => update("residenceFiscaleFrance", val)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir une option" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="oui">Oui</SelectItem>
-                <SelectItem value="non">Non</SelectItem>
-              </SelectContent>
-            </Select>
-          </ModernFormField>
-          {showResidenceDetails && data.residenceFiscaleFrance === "non" && (
-            <>
-              <ModernFormField
-                label="Pays de résidence fiscale"
-                required
-                isMissing={isMissing("residenceFiscalePays")}
-                fieldId={fieldId("residenceFiscalePays")}
-              >
-                <Input value={data.residenceFiscalePays} onChange={(e) => update("residenceFiscalePays", e.target.value)} />
-              </ModernFormField>
-              <ModernFormField
-                label="Adresse fiscale"
-                required
-                isMissing={isMissing("residenceFiscaleAdresse")}
-                fieldId={fieldId("residenceFiscaleAdresse")}
-              >
-                <AddressAutocompleteField
-                  value={data.residenceFiscaleAdresse}
-                  onChange={(val) => update("residenceFiscaleAdresse", val)}
-                  placeholder="Adresse complète"
-                />
-              </ModernFormField>
-              <ModernFormField label="Numéro d’identification fiscale">
-                <Input
-                  value={data.residenceFiscaleNumero}
-                  onChange={(e) => update("residenceFiscaleNumero", e.target.value)}
-                />
-              </ModernFormField>
-            </>
-          )}
-        </div>
-      </ModernFormSection>
-
-      <ModernFormSection
         title="Situation matrimoniale"
         subtitle="Affichage conditionnel des champs"
         icon={<HandCoins className="h-5 w-5" />}
@@ -1241,52 +1180,6 @@ function PersonBuyerCard({
           </ModernFormField>
 
           <SituationMatrimonialeFields data={data} onChange={onChange} />
-        </div>
-      </ModernFormSection>
-
-          <ModernFormSection
-            title="Désignation du notaire"
-            subtitle="Optionnel"
-            icon={<Home className="h-5 w-5" />}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ModernFormField
-            label="Souhaitez-vous désigner un notaire particulier ?"
-            required
-            isMissing={isMissing("notaireDesigne")}
-            fieldId={fieldId("notaireDesigne")}
-          >
-                <Select
-                  value={data.notaireDesigne}
-                  onValueChange={(val: OuiNon) => updateNotaire("notaireDesigne", val)}
-                >
-                  <SelectTrigger>
-                <SelectValue placeholder="Non par défaut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="non">Non</SelectItem>
-                <SelectItem value="oui">Oui</SelectItem>
-              </SelectContent>
-            </Select>
-          </ModernFormField>
-          {data.notaireDesigne === "oui" && (
-            <>
-              <ModernFormField label="Nom du notaire" required isMissing={isMissing("notaireNom")} fieldId={fieldId("notaireNom")}>
-                <Input
-                  value={data.notaireNom}
-                  onChange={(e) => updateNotaire("notaireNom", e.target.value)}
-                  placeholder="Ex: Maître Dupont"
-                />
-              </ModernFormField>
-              <ModernFormField label="Ville de l'étude" required isMissing={isMissing("notaireVille")} fieldId={fieldId("notaireVille")}>
-                <Input
-                  value={data.notaireVille}
-                  onChange={(e) => updateNotaire("notaireVille", e.target.value)}
-                  placeholder="Ex: Quimper"
-                />
-              </ModernFormField>
-            </>
-          )}
         </div>
       </ModernFormSection>
 
@@ -1335,6 +1228,7 @@ function FinancementSection({
                     achatComptant: true,
                     montantPrets: "",
                     dureeSouhaitee: "",
+                    dureeSouhaiteeAutre: "",
                     tauxInteretMax: "",
                     mensualiteMax: "",
                   })
@@ -1398,6 +1292,20 @@ function FinancementSection({
               </SelectContent>
             </Select>
           </ModernFormField>
+          {data.dureeSouhaitee === "Autre" && !disableLoanFields && (
+            <ModernFormField
+              label="Précisez la durée du prêt"
+              required
+              isMissing={isMissing("dureeSouhaiteeAutre")}
+              fieldId="field-financement-dureeSouhaiteeAutre"
+            >
+              <Input
+                value={data.dureeSouhaiteeAutre}
+                onChange={(e) => update("dureeSouhaiteeAutre", e.target.value)}
+                placeholder="Ex : 7 ans, 30 ans"
+              />
+            </ModernFormField>
+          )}
           <ModernFormField
             label="Taux d’intérêt maximum accepté"
             required={!disableLoanFields}
@@ -2542,16 +2450,7 @@ export default function AcquereurFormPage() {
     require("adresse")
     require("telephone")
     require("email")
-    require("residenceFiscaleFrance")
-    if (p.residenceFiscaleFrance === "non") {
-      require("residenceFiscalePays")
-      require("residenceFiscaleAdresse")
-    }
     require("situationMatrimoniale")
-    if (p.notaireDesigne === "oui") {
-      if (!p.notaireNom.trim()) missing.push(`${prefix}.notaireNom`)
-      if (!p.notaireVille.trim()) missing.push(`${prefix}.notaireVille`)
-    }
     return missing
   }
 
@@ -2563,6 +2462,9 @@ const validateFinancement = (f: FinancementAcquisition): string[] => {
   if (!f.achatComptant) {
     require("montantPrets")
     require("dureeSouhaitee")
+    if (f.dureeSouhaitee === "Autre") {
+      if (!f.dureeSouhaiteeAutre || String(f.dureeSouhaiteeAutre).trim() === "") missing.push("financement.dureeSouhaiteeAutre")
+    }
     require("tauxInteretMax")
     require("mensualiteMax")
   }
@@ -3153,7 +3055,6 @@ const validateFinancement = (f: FinancementAcquisition): string[] => {
                   }
                 }))
               }
-              showResidenceDetails
               showValidationErrors={showValidationErrors}
               missing={missingFields}
               pathPrefix="couple.vendeur1"
@@ -3168,7 +3069,6 @@ const validateFinancement = (f: FinancementAcquisition): string[] => {
                   couple: { ...prev.couple, vendeur2: data }
                 }))
               }
-              showResidenceDetails
               showValidationErrors={showValidationErrors}
               missing={missingFields}
               pathPrefix="couple.vendeur2"
@@ -3238,7 +3138,6 @@ const validateFinancement = (f: FinancementAcquisition): string[] => {
                     data={personne}
                     onChange={(data) => updateIndivisionPerson(index, data)}
                     showCivilite
-                    showResidenceDetails
                     showValidationErrors={showValidationErrors}
                     missing={missingFields}
                     pathPrefix={index === 0 ? "personne" : `indivision.${index}`}

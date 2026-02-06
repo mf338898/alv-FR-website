@@ -1,5 +1,17 @@
 // Templates d'email enrichis avec plus d'informations
 
+function formatGarantRevenus(garant: any): string {
+  const parts: string[] = []
+  if (garant.salaireNet?.trim()) parts.push(`Salaire net : ${garant.salaireNet} €`)
+  if (garant.indemnitesChomage?.trim()) parts.push(`Indemnités chômage : ${garant.indemnitesChomage} €`)
+  if (garant.aahAllocationsHandicap?.trim()) parts.push(`AAH / Allocations handicap : ${garant.aahAllocationsHandicap} €`)
+  if (garant.rsa?.trim()) parts.push(`RSA : ${garant.rsa} €`)
+  if (garant.pension?.trim()) parts.push(`Pension : ${garant.pension} €`)
+  if (garant.revenusAutoEntrepreneur?.trim()) parts.push(`Revenus auto-entrepreneur : ${garant.revenusAutoEntrepreneur} €`)
+  if (garant.aidesAuLogement?.trim()) parts.push(`Aides au logement : ${garant.aidesAuLogement} €`)
+  return parts.length ? parts.join(", ") : "-"
+}
+
 export function generateGarantEmailHTML(data: {
   garants: any[]
   cautionnes: any[]
@@ -50,7 +62,7 @@ export function generateGarantEmailHTML(data: {
                     <p style="margin: 3px 0;"><strong>Email :</strong> ${garant.email || '-'}</p>
                     <p style="margin: 3px 0;"><strong>Profession :</strong> ${garant.profession || '-'}</p>
                     <p style="margin: 3px 0;"><strong>Employeur :</strong> ${garant.employeurNom || '-'}</p>
-                    <p style="margin: 3px 0;"><strong>Salaire :</strong> ${garant.salaire ? garant.salaire + ' €' : '-'}</p>
+                    <p style="margin: 3px 0;"><strong>Revenus mensuels :</strong> ${formatGarantRevenus(garant)}</p>
                 </div>
             `).join('')}
         </div>
@@ -116,7 +128,7 @@ Garant ${index + 1} :
 - Email : ${garant.email || '-'}
 - Profession : ${garant.profession || '-'}
 - Employeur : ${garant.employeurNom || '-'}
-- Salaire : ${garant.salaire ? garant.salaire + ' €' : '-'}
+- Revenus mensuels : ${formatGarantRevenus(garant)}
 `).join('\n')}
 
 LOCATAIRE(S) CONCERNÉ(S) :

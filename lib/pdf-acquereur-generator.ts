@@ -424,30 +424,6 @@ async function drawSingleLeftAlignedColumnWithBreaks(ctx: DocContext, p?: any, p
     drawLabeledRowFromPrepared(ctx, row, prep, xLabel, xValue)
   }
 
-  // Résidence fiscale
-  await ensureSpace(ctx, 30)
-  ctx.y = drawSectionHeader(ctx.page, "Résidence fiscale", xLeft, ctx.y, ctx.fonts.bold)
-  
-  const residenceRows: Row[] = [
-    { label: "Résidence fiscale en France", value: pdfSafe(showOrDash(p?.residenceFiscaleFrance)) },
-  ]
-  
-  if (p?.residenceFiscaleFrance === "non") {
-    residenceRows.push(
-      { label: "Pays résidence fiscale", value: pdfSafe(showOrDash(p?.residenceFiscalePays)) },
-      { label: "Adresse fiscale", value: pdfSafe(showOrDash(p?.residenceFiscaleAdresse)) },
-      { label: "Numéro d'identification fiscale", value: pdfSafe(showOrDash(p?.residenceFiscaleNumero)) }
-    )
-  }
-
-  for (const row of residenceRows) {
-    const fontValue = row.highlight ? ctx.fonts.bold : ctx.fonts.reg
-    const labelWidth = ctx.fonts.bold.widthOfTextAtSize(pdfSafe(row.label), LABEL_SIZE)
-    const prep = prepareRowParts(row, fontValue, colWidth, labelWidth)
-    await ensureSpace(ctx, prep.totalHeight + 3) // Plus d'espace pour éviter les superpositions
-    drawLabeledRowFromPrepared(ctx, row, prep, xLabel, xValue)
-  }
-
   // Situation matrimoniale
   await ensureSpace(ctx, 30)
   ctx.y = drawSectionHeader(ctx.page, "Situation matrimoniale", xLeft, ctx.y, ctx.fonts.bold)
@@ -508,29 +484,6 @@ async function drawSingleLeftAlignedColumnWithBreaks(ctx: DocContext, p?: any, p
     drawLabeledRowFromPrepared(ctx, row, prep, xLabel, xValue)
   }
 
-  // Notaire
-  await ensureSpace(ctx, 30)
-  ctx.y = drawSectionHeader(ctx.page, "Notaire", xLeft, ctx.y, ctx.fonts.bold)
-  
-  const notaireRows: Row[] = [
-    { label: "Notaire désigné", value: pdfSafe(showOrDash(p?.notaireDesigne || "non")) },
-  ]
-  
-  if (p?.notaireDesigne === "oui") {
-    notaireRows.push(
-      { label: "Nom du notaire", value: pdfSafe(showOrDash(p?.notaireNom)) },
-      { label: "Ville de l'étude", value: pdfSafe(showOrDash(p?.notaireVille)) }
-    )
-  }
-
-  for (const row of notaireRows) {
-    const fontValue = row.highlight ? ctx.fonts.bold : ctx.fonts.reg
-    const labelWidth = ctx.fonts.bold.widthOfTextAtSize(pdfSafe(row.label), LABEL_SIZE)
-    const prep = prepareRowParts(row, fontValue, colWidth, labelWidth)
-    await ensureSpace(ctx, prep.totalHeight + 3) // Plus d'espace pour éviter les superpositions
-    drawLabeledRowFromPrepared(ctx, row, prep, xLabel, xValue)
-  }
-
   await drawFinancement(ctx, financement)
 
   // Précisions complémentaires
@@ -568,6 +521,7 @@ const FINANCEMENT_KEYS = [
   "montantPrets",
   "apportPersonnel",
   "dureeSouhaitee",
+  "dureeSouhaiteeAutre",
   "tauxInteretMax",
   "mensualiteMax",
   "banque",
@@ -590,7 +544,10 @@ async function drawFinancement(ctx: DocContext, financement?: any) {
   } else {
     if (nonEmpty(f.montantPrets)) projetRows.push({ label: "Montant global des prêts (€)", value: toValue(f.montantPrets) })
     if (nonEmpty(f.apportPersonnel)) projetRows.push({ label: "Apport personnel (€)", value: toValue(f.apportPersonnel) })
-    if (nonEmpty(f.dureeSouhaitee)) projetRows.push({ label: "Durée du prêt souhaitée", value: toValue(f.dureeSouhaitee) })
+    if (nonEmpty(f.dureeSouhaitee)) {
+      const dureeValue = f.dureeSouhaitee === "Autre" && nonEmpty(f.dureeSouhaiteeAutre) ? f.dureeSouhaiteeAutre : f.dureeSouhaitee
+      projetRows.push({ label: "Durée du prêt souhaitée", value: toValue(dureeValue) })
+    }
     if (nonEmpty(f.tauxInteretMax)) projetRows.push({ label: "Taux d’intérêt maximum (%)", value: toValue(f.tauxInteretMax) })
     if (nonEmpty(f.mensualiteMax)) projetRows.push({ label: "Mensualité maximale (€ / mois)", value: toValue(f.mensualiteMax) })
   }

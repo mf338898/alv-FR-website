@@ -424,30 +424,6 @@ async function drawSingleLeftAlignedColumnWithBreaks(ctx: DocContext, p?: any, p
     drawLabeledRowFromPrepared(ctx, row, prep, xLabel, xValue)
   }
 
-  // Résidence fiscale
-  await ensureSpace(ctx, 30)
-  ctx.y = drawSectionHeader(ctx.page, "Résidence fiscale", xLeft, ctx.y, ctx.fonts.bold)
-  
-  const residenceRows: Row[] = [
-    { label: "Résidence fiscale en France", value: pdfSafe(showOrDash(p?.residenceFiscaleFrance)) },
-  ]
-  
-  if (p?.residenceFiscaleFrance === "non") {
-    residenceRows.push(
-      { label: "Pays résidence fiscale", value: pdfSafe(showOrDash(p?.residenceFiscalePays)) },
-      { label: "Adresse fiscale", value: pdfSafe(showOrDash(p?.residenceFiscaleAdresse)) },
-      { label: "Numéro d'identification fiscale", value: pdfSafe(showOrDash(p?.residenceFiscaleNumero)) }
-    )
-  }
-
-  for (const row of residenceRows) {
-    const fontValue = row.highlight ? ctx.fonts.bold : ctx.fonts.reg
-    const labelWidth = ctx.fonts.bold.widthOfTextAtSize(pdfSafe(row.label), LABEL_SIZE)
-    const prep = prepareRowParts(row, fontValue, colWidth, labelWidth)
-    await ensureSpace(ctx, prep.totalHeight + 3) // Plus d'espace pour éviter les superpositions
-    drawLabeledRowFromPrepared(ctx, row, prep, xLabel, xValue)
-  }
-
   // Situation matrimoniale
   await ensureSpace(ctx, 30)
   ctx.y = drawSectionHeader(ctx.page, "Situation matrimoniale", xLeft, ctx.y, ctx.fonts.bold)
@@ -477,53 +453,6 @@ async function drawSingleLeftAlignedColumnWithBreaks(ctx: DocContext, p?: any, p
   })
 
   for (const row of situationRows) {
-    const fontValue = row.highlight ? ctx.fonts.bold : ctx.fonts.reg
-    const labelWidth = ctx.fonts.bold.widthOfTextAtSize(pdfSafe(row.label), LABEL_SIZE)
-    const prep = prepareRowParts(row, fontValue, colWidth, labelWidth)
-    await ensureSpace(ctx, prep.totalHeight + 3) // Plus d'espace pour éviter les superpositions
-    drawLabeledRowFromPrepared(ctx, row, prep, xLabel, xValue)
-  }
-
-  // Représentation
-  await ensureSpace(ctx, 30)
-  ctx.y = drawSectionHeader(ctx.page, "Représentation", xLeft, ctx.y, ctx.fonts.bold)
-  
-  const representationRows: Row[] = [
-    { label: "Présence à la signature", value: pdfSafe(p?.representation?.seraPresent === "non" ? "Représenté" : "Présent") },
-  ]
-  
-  if (p?.representation?.seraPresent === "non") {
-    representationRows.push(
-      { label: "Représentant", value: pdfSafe(`${showOrDash(p?.representation?.representantPrenom)} ${showOrDash(p?.representation?.representantNom)}`) },
-      { label: "Téléphone représentant", value: pdfSafe(showOrDash(p?.representation?.representantTelephone)) },
-      { label: "Email représentant", value: pdfSafe(showOrDash(p?.representation?.representantEmail)) }
-    )
-  }
-
-  for (const row of representationRows) {
-    const fontValue = row.highlight ? ctx.fonts.bold : ctx.fonts.reg
-    const labelWidth = ctx.fonts.bold.widthOfTextAtSize(pdfSafe(row.label), LABEL_SIZE)
-    const prep = prepareRowParts(row, fontValue, colWidth, labelWidth)
-    await ensureSpace(ctx, prep.totalHeight + 3) // Plus d'espace pour éviter les superpositions
-    drawLabeledRowFromPrepared(ctx, row, prep, xLabel, xValue)
-  }
-
-  // Notaire
-  await ensureSpace(ctx, 30)
-  ctx.y = drawSectionHeader(ctx.page, "Notaire", xLeft, ctx.y, ctx.fonts.bold)
-  
-  const notaireRows: Row[] = [
-    { label: "Notaire désigné", value: pdfSafe(showOrDash(p?.notaireDesigne || "non")) },
-  ]
-  
-  if (p?.notaireDesigne === "oui") {
-    notaireRows.push(
-      { label: "Nom du notaire", value: pdfSafe(showOrDash(p?.notaireNom)) },
-      { label: "Ville de l'étude", value: pdfSafe(showOrDash(p?.notaireVille)) }
-    )
-  }
-
-  for (const row of notaireRows) {
     const fontValue = row.highlight ? ctx.fonts.bold : ctx.fonts.reg
     const labelWidth = ctx.fonts.bold.widthOfTextAtSize(pdfSafe(row.label), LABEL_SIZE)
     const prep = prepareRowParts(row, fontValue, colWidth, labelWidth)

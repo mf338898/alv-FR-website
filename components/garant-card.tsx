@@ -66,6 +66,19 @@ export function GarantCard({
   canRemove,
   showValidationErrors = false
 }: GarantCardProps) {
+  const REVENU_KEYS = [
+    "salaireNet",
+    "indemnitesChomage",
+    "aahAllocationsHandicap",
+    "rsa",
+    "pension",
+    "revenusAutoEntrepreneur",
+    "aidesAuLogement",
+  ] as const
+
+  const hasAtLeastOneRevenu = (g: Locataire): boolean =>
+    REVENU_KEYS.some((key) => g[key] != null && String(g[key]).trim() !== "")
+
   const revenusOptions = [
     { key: "indemnitesChomage", label: "Indemnités chômage" },
     { key: "aahAllocationsHandicap", label: "AAH / Allocations handicap" },
@@ -74,11 +87,17 @@ export function GarantCard({
     { key: "revenusAutoEntrepreneur", label: "Revenus auto-entrepreneur / indépendant" },
     { key: "aidesAuLogement", label: "Aides au logement (APL estimées si connues)" }
   ]
+  const allRevenuTypes = [
+    { key: "salaireNet", label: "Salaire net" },
+    ...revenusOptions,
+  ]
+  const [revenuPrincipalType, setRevenuPrincipalType] = useState<string>("salaireNet")
   const [revenusSupp, setRevenusSupp] = useState<string[]>([])
 
   useEffect(() => {
     const init = revenusOptions
       .filter((opt) => {
+        if (opt.key === revenuPrincipalType) return false
         const val = garant[opt.key as keyof Locataire]
         return typeof val === "string" && val.trim() !== ""
       })
@@ -87,10 +106,11 @@ export function GarantCard({
       const merged = Array.from(new Set([...prev, ...init]))
       return merged
     })
-  }, [garant])
+  }, [garant, revenuPrincipalType])
 
   const addRevenu = () => {
-    const next = revenusOptions.find((opt) => !revenusSupp.includes(opt.key))
+    const available = allRevenuTypes.filter((opt) => opt.key !== revenuPrincipalType && !revenusSupp.includes(opt.key))
+    const next = available[0]
     if (next) {
       setRevenusSupp((prev) => [...prev, next.key])
     }
@@ -124,17 +144,17 @@ export function GarantCard({
 
   const isFieldMissing = (field: string): boolean => {
     if (!showValidationErrors) return false
-    
+    if (field === "revenusMensuels") return !hasAtLeastOneRevenu(garant)
     if (!requiredFields.includes(field)) return false
-    
     const value = garant[field as keyof Locataire]
-    return !value || (typeof value === 'string' && value.trim() === '')
+    return !value || (typeof value === "string" && value.trim() === "")
   }
 
-  const isComplete = requiredFields.every((field) => {
-    const value = garant[field as keyof Locataire]
-    return value && (typeof value === "string" ? value.trim() !== "" : true)
-  })
+  const isComplete =
+    requiredFields.every((field) => {
+      const value = garant[field as keyof Locataire]
+      return value && (typeof value === "string" ? value.trim() !== "" : true)
+    }) && hasAtLeastOneRevenu(garant)
   return (
     <Card className="border-0 shadow-lg bg-white/90">
       <CardHeader className="border-b border-slate-100 pb-4">
@@ -224,24 +244,52 @@ export function GarantCard({
           fieldPrefix={`garant_${garantIndex}_`}
         />
 
-        <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:p-6 space-y-4">
+        <div
+          id={`field-garant_${garantIndex}_revenusMensuels`}
+          className={`rounded-xl border p-4 sm:p-6 space-y-4 ${
+            isFieldMissing("revenusMensuels")
+              ? "border-rose-300 bg-rose-50/50"
+              : "border-slate-200 bg-slate-50/60"
+          }`}
+        >
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">Revenus mensuels</h3>
-            <p className="text-xs text-slate-600 mt-1">Indiquez uniquement les revenus qui vous concernent.</p>
+            <h3 className="text-sm font-semibold text-slate-900">
+              Revenus mensuels <span className="text-rose-600">*</span>
+            </h3>
+            <p className="text-xs text-slate-600 mt-1">
+              Indiquez uniquement les revenus qui vous concernent. Au moins un type de revenu doit être renseigné.
+            </p>
+            {isFieldMissing("revenusMensuels") && (
+              <p className="text-xs text-rose-600 mt-1">Veuillez renseigner au moins un revenu (montant en €).</p>
+            )}
           </div>
 
-          <FormField
-            label="Salaire net"
-            value={garant.salaireNet || ""}
-            onChange={(val) => onFieldChange("salaireNet", val)}
-            onEdit={() => onFieldEdit(`garant_${garantIndex}_salaireNet`)}
-            onBlur={onFieldBlur}
-            isEditing={editingField === `garant_${garantIndex}_salaireNet`}
-            type="number"
-            placeholder="Montant en €"
-            isMissing={isFieldMissing("salaireNet")}
-            fieldId={`field-garant_${garantIndex}_salaireNet`}
-          />
+          <div className="rounded-lg border border-slate-200 bg-white p-3 flex flex-col sm:flex-row sm:items-center gap-3">
+            <Select
+              value={revenuPrincipalType}
+              onValueChange={(newKey) => {
+                setRevenuPrincipalType(newKey)
+              }}
+            >
+              <SelectTrigger className="sm:w-64">
+                <SelectValue placeholder="Type de revenu" />
+              </SelectTrigger>
+              <SelectContent>
+                {allRevenuTypes.map((opt) => (
+                  <SelectItem key={opt.key} value={opt.key}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              type="number"
+              value={(garant[revenuPrincipalType as keyof Locataire] as string) || ""}
+              onChange={(e) => onFieldChange(revenuPrincipalType, e.target.value)}
+              placeholder="Montant en €"
+              className="flex-1"
+            />
+          </div>
 
           <div className="space-y-3">
             <Button
@@ -250,7 +298,7 @@ export function GarantCard({
               size="sm"
               className="px-0 text-purple-700 hover:text-purple-800 hover:bg-purple-50"
               onClick={addRevenu}
-              disabled={revenusSupp.length === revenusOptions.length}
+              disabled={revenusSupp.length >= allRevenuTypes.length - 1}
             >
               <Plus className="h-4 w-4 mr-1" />
               Ajouter un autre type de revenu
@@ -269,16 +317,10 @@ export function GarantCard({
                         <SelectValue placeholder="Type de revenu" />
                       </SelectTrigger>
                       <SelectContent>
-                        {revenusSupp.length < revenusOptions.length &&
-                          revenusOptions
-                            .filter((opt) => !revenusSupp.includes(opt.key) || opt.key === key)
-                            .map((opt) => (
-                              <SelectItem key={opt.key} value={opt.key}>
-                                {opt.label}
-                              </SelectItem>
-                            ))}
-                        {revenusSupp.length === revenusOptions.length &&
-                          revenusOptions.map((opt) => (
+                        {allRevenuTypes
+                          .filter((opt) => opt.key !== revenuPrincipalType)
+                          .filter((opt) => !revenusSupp.includes(opt.key) || opt.key === key)
+                          .map((opt) => (
                             <SelectItem key={opt.key} value={opt.key}>
                               {opt.label}
                             </SelectItem>

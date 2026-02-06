@@ -29,6 +29,18 @@ const nonEmpty = (v?: string | null) => Boolean(v && String(v).trim() !== "")
 const dash = "-" // single dash for missing data
 const showOrDash = (v?: string | null) => (nonEmpty(v) ? String(v) : dash)
 
+function euro(v?: string | null) {
+  if (!nonEmpty(v)) return dash
+  const n = Number(String(v).replace(/\s/g, "").replace(",", "."))
+  if (!isFinite(n) || Number.isNaN(n)) return dash
+  const formatted = new Intl.NumberFormat("fr-FR", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(n)
+  return pdfSafe(formatted)
+}
+
 function toTitleCase(s?: string | null) {
   if (!nonEmpty(s)) return ""
   const lower = String(s).toLowerCase()
@@ -173,6 +185,19 @@ function identityRows(l?: Locataire): Row[] {
     { label: "Domicile (ligne 2)", value: pdfSafe(addr2) },
     { label: "Situation conjugale", value: pdfSafe(showOrDash(l?.situationConjugale)) },
   ]
+}
+
+function revenusRows(l?: Locataire): Row[] {
+  const rows: Row[] = []
+  if (nonEmpty(l?.salaireNet)) rows.push({ label: "Salaire net", value: euro(l?.salaireNet) })
+  if (nonEmpty(l?.indemnitesChomage)) rows.push({ label: "Indemnités chômage", value: euro(l?.indemnitesChomage) })
+  if (nonEmpty(l?.aahAllocationsHandicap)) rows.push({ label: "AAH / Allocations handicap", value: euro(l?.aahAllocationsHandicap) })
+  if (nonEmpty(l?.rsa)) rows.push({ label: "RSA", value: euro(l?.rsa) })
+  if (nonEmpty(l?.pension)) rows.push({ label: "Pension (retraite, pension alimentaire…)", value: euro(l?.pension) })
+  if (nonEmpty(l?.revenusAutoEntrepreneur)) rows.push({ label: "Revenus auto-entrepreneur / indépendant", value: euro(l?.revenusAutoEntrepreneur) })
+  if (nonEmpty(l?.aidesAuLogement)) rows.push({ label: "Aides au logement (APL estimées)", value: euro(l?.aidesAuLogement) })
+  if (rows.length === 0) rows.push({ label: "Revenus mensuels", value: dash })
+  return rows
 }
 
 // Drawing primitives - EXACTEMENT comme pdf-generator.ts
@@ -392,6 +417,30 @@ async function drawTwoColumnsAlignedWithBreaks(ctx: DocContext, left?: Locataire
     const yAfterRight = ctx.y
     ctx.y = Math.min(yAfterLeft, yAfterRight)
   }
+
+  const rowsRevL = revenusRows(left)
+  const rowsRevR = revenusRows(right)
+  await ensureSpace(ctx, 32)
+  ctx.y = drawSectionHeader(ctx.page, "Revenus mensuels", xLeft, ctx.y, ctx.fonts.bold)
+
+  for (let i = 0; i < Math.max(rowsRevL.length, rowsRevR.length); i++) {
+    const rL = rowsRevL[i] || { label: rowsRevR[i]?.label || "", value: dash }
+    const rR = rowsRevR[i] || { label: rowsRevL[i]?.label || "", value: dash }
+    const fontLeft = rL.highlight ? ctx.fonts.bold : ctx.fonts.reg
+    const fontRight = rR.highlight ? ctx.fonts.bold : ctx.fonts.reg
+    const prepL = prepareRowParts(rL, fontLeft, layout.colWidth)
+    const prepR = prepareRowParts(rR, fontRight, layout.colWidth)
+    const pairHeight = Math.max(prepL.totalHeight, prepR.totalHeight) + 2
+    ctx.drawColumnHeadingsNext = () => drawColumnHeadingsInline(ctx, xLeft, right ? xRight : undefined, leftNumber, rightNumber)
+    await ensureSpace(ctx, pairHeight)
+    const yStart = ctx.y
+    drawLabeledRowFromPrepared(ctx, rL, prepL, layout.xLabelL, layout.xValueL)
+    const yAfterLeft = ctx.y
+    ctx.y = yStart
+    drawLabeledRowFromPrepared(ctx, rR, prepR, layout.xLabelR, layout.xValueR)
+    const yAfterRight = ctx.y
+    ctx.y = Math.min(yAfterLeft, yAfterRight)
+  }
 }
 
 // Single, centered column (for 1 garant), with pagination - OPTIMISÉ POUR LA LISIBILITÉ
@@ -415,6 +464,15 @@ async function drawSingleCenteredColumnWithBreaks(ctx: DocContext, l?: Locataire
     const fontValue = row.highlight ? ctx.fonts.bold : ctx.fonts.reg
     const prep = prepareRowParts(row, fontValue, colWidth)
     await ensureSpace(ctx, prep.totalHeight + 2) // Augmenté de 1 à 2
+    drawLabeledRowFromPrepared(ctx, row, prep, xLabel, xValue)
+  }
+
+  await ensureSpace(ctx, 32)
+  ctx.y = drawSectionHeader(ctx.page, "Revenus mensuels", xCenter, ctx.y, ctx.fonts.bold)
+  for (const row of revenusRows(l)) {
+    const fontValue = row.highlight ? ctx.fonts.bold : ctx.fonts.reg
+    const prep = prepareRowParts(row, fontValue, colWidth)
+    await ensureSpace(ctx, prep.totalHeight + 2)
     drawLabeledRowFromPrepared(ctx, row, prep, xLabel, xValue)
   }
 }

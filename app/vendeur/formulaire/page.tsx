@@ -1018,7 +1018,6 @@ function PersonSellerCard({
   title,
   data,
   onChange,
-  showResidenceDetails = false,
   showCivilite = false,
   showValidationErrors = false,
   missing,
@@ -1027,7 +1026,6 @@ function PersonSellerCard({
   title: string
   data: PersonneSeller
   onChange: (data: PersonneSeller) => void
-  showResidenceDetails?: boolean
   showCivilite?: boolean
   showValidationErrors?: boolean
   missing?: Record<string, boolean>
@@ -1035,23 +1033,6 @@ function PersonSellerCard({
 }) {
   const update = (key: keyof PersonneSeller, value: string | OuiNon | SituationMatrimoniale | "") => {
     onChange({ ...data, [key]: value } as PersonneSeller)
-  }
-
-  const updateRepresentation = (key: keyof PersonneSeller["representation"], value: string) => {
-    onChange({
-      ...data,
-      representation: {
-        ...data.representation,
-        [key]: value
-      }
-    })
-  }
-
-  const updateNotaire = (key: "notaireDesigne" | "notaireNom" | "notaireVille", value: string | OuiNon) => {
-    onChange({
-      ...data,
-      [key]: value
-    })
   }
 
   const isMissing = (path: string) => Boolean(showValidationErrors && missing?.[`${pathPrefix}.${path}`])
@@ -1118,60 +1099,6 @@ function PersonSellerCard({
         </div>
       </ModernFormSection>
 
-      <ModernFormSection
-        title="Résidence fiscale"
-        subtitle="Question obligatoire"
-        icon={<Shield className="h-5 w-5" />}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ModernFormField
-            label="Avez-vous votre résidence fiscale en France ?"
-            required
-            isMissing={isMissing("residenceFiscaleFrance")}
-            fieldId={fieldId("residenceFiscaleFrance")}
-          >
-            <Select value={data.residenceFiscaleFrance} onValueChange={(val: OuiNon) => update("residenceFiscaleFrance", val)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir une option" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="oui">Oui</SelectItem>
-                <SelectItem value="non">Non</SelectItem>
-              </SelectContent>
-            </Select>
-          </ModernFormField>
-          {showResidenceDetails && data.residenceFiscaleFrance === "non" && (
-            <>
-              <ModernFormField
-                label="Pays de résidence fiscale"
-                required
-                isMissing={isMissing("residenceFiscalePays")}
-                fieldId={fieldId("residenceFiscalePays")}
-              >
-                <Input value={data.residenceFiscalePays} onChange={(e) => update("residenceFiscalePays", e.target.value)} />
-              </ModernFormField>
-              <ModernFormField
-                label="Adresse fiscale"
-                required
-                isMissing={isMissing("residenceFiscaleAdresse")}
-                fieldId={fieldId("residenceFiscaleAdresse")}
-              >
-                <AddressAutocompleteField
-                  value={data.residenceFiscaleAdresse}
-                  onChange={(val) => update("residenceFiscaleAdresse", val)}
-                  placeholder="Adresse complète"
-                />
-              </ModernFormField>
-              <ModernFormField label="Numéro d’identification fiscale">
-                <Input
-                  value={data.residenceFiscaleNumero}
-                  onChange={(e) => update("residenceFiscaleNumero", e.target.value)}
-                />
-              </ModernFormField>
-            </>
-          )}
-        </div>
-      </ModernFormSection>
 
       <ModernFormSection
         title="Situation matrimoniale"
@@ -1203,108 +1130,6 @@ function PersonSellerCard({
           </ModernFormField>
 
           <SituationMatrimonialeFields data={data} onChange={onChange} />
-        </div>
-      </ModernFormSection>
-
-      <ModernFormSection
-        title="Représentation"
-        subtitle="Présence ou représentation à la signature"
-        icon={<Users className="h-5 w-5" />}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ModernFormField
-            label="Serez-vous présent(e) en personne pour signer chez le notaire ?"
-            required
-            isMissing={isMissing("representation.seraPresent")}
-            fieldId={fieldId("representation.seraPresent")}
-          >
-            <Select
-              value={data.representation.seraPresent}
-              onValueChange={(val: OuiNon) => updateRepresentation("seraPresent", val)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir une option" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="oui">Oui</SelectItem>
-                <SelectItem value="non">Non</SelectItem>
-              </SelectContent>
-            </Select>
-          </ModernFormField>
-          {data.representation.seraPresent === "non" && (
-            <>
-              <ModernFormField label="Nom du représentant" required isMissing={isMissing("representation.representantNom")} fieldId={fieldId("representation.representantNom")}>
-                <Input
-                  value={data.representation.representantNom}
-                  onChange={(e) => updateRepresentation("representantNom", e.target.value)}
-                />
-              </ModernFormField>
-              <ModernFormField label="Prénom du représentant" required isMissing={isMissing("representation.representantPrenom")} fieldId={fieldId("representation.representantPrenom")}>
-                <Input
-                  value={data.representation.representantPrenom}
-                  onChange={(e) => updateRepresentation("representantPrenom", e.target.value)}
-                />
-              </ModernFormField>
-              <ModernFormField label="Téléphone du représentant" required isMissing={isMissing("representation.representantTelephone")} fieldId={fieldId("representation.representantTelephone")}>
-                <Input
-                  value={data.representation.representantTelephone}
-                  onChange={(e) => updateRepresentation("representantTelephone", e.target.value)}
-                />
-              </ModernFormField>
-              <ModernFormField label="Email du représentant" required isMissing={isMissing("representation.representantEmail")} fieldId={fieldId("representation.representantEmail")}>
-                <Input
-                  value={data.representation.representantEmail}
-                  onChange={(e) => updateRepresentation("representantEmail", e.target.value)}
-                />
-              </ModernFormField>
-            </>
-          )}
-        </div>
-      </ModernFormSection>
-
-          <ModernFormSection
-            title="Désignation du notaire"
-            subtitle="Optionnel"
-            icon={<Home className="h-5 w-5" />}
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ModernFormField
-            label="Souhaitez-vous désigner un notaire particulier ?"
-            required
-            isMissing={isMissing("notaireDesigne")}
-            fieldId={fieldId("notaireDesigne")}
-          >
-                <Select
-                  value={data.notaireDesigne}
-                  onValueChange={(val: OuiNon) => updateNotaire("notaireDesigne", val)}
-                >
-                  <SelectTrigger>
-                <SelectValue placeholder="Non par défaut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="non">Non</SelectItem>
-                <SelectItem value="oui">Oui</SelectItem>
-              </SelectContent>
-            </Select>
-          </ModernFormField>
-          {data.notaireDesigne === "oui" && (
-            <>
-              <ModernFormField label="Nom du notaire" required isMissing={isMissing("notaireNom")} fieldId={fieldId("notaireNom")}>
-                <Input
-                  value={data.notaireNom}
-                  onChange={(e) => updateNotaire("notaireNom", e.target.value)}
-                  placeholder="Ex: Maître Dupont"
-                />
-              </ModernFormField>
-              <ModernFormField label="Ville de l'étude" required isMissing={isMissing("notaireVille")} fieldId={fieldId("notaireVille")}>
-                <Input
-                  value={data.notaireVille}
-                  onChange={(e) => updateNotaire("notaireVille", e.target.value)}
-                  placeholder="Ex: Quimper"
-                />
-              </ModernFormField>
-            </>
-          )}
         </div>
       </ModernFormSection>
 
@@ -2390,22 +2215,7 @@ export default function VendeurFormPage() {
     require("adresse")
     require("telephone")
     require("email")
-    require("residenceFiscaleFrance")
-    if (p.residenceFiscaleFrance === "non") {
-      require("residenceFiscalePays")
-      require("residenceFiscaleAdresse")
-    }
     require("situationMatrimoniale")
-    if (p.representation.seraPresent === "non") {
-      if (!p.representation.representantNom.trim()) missing.push(`${prefix}.representantNom`)
-      if (!p.representation.representantPrenom.trim()) missing.push(`${prefix}.representantPrenom`)
-      if (!p.representation.representantTelephone.trim()) missing.push(`${prefix}.representantTelephone`)
-      if (!p.representation.representantEmail.trim()) missing.push(`${prefix}.representantEmail`)
-    }
-    if (p.notaireDesigne === "oui") {
-      if (!p.notaireNom.trim()) missing.push(`${prefix}.notaireNom`)
-      if (!p.notaireVille.trim()) missing.push(`${prefix}.notaireVille`)
-    }
     return missing
   }
 
@@ -2987,7 +2797,6 @@ export default function VendeurFormPage() {
                   }
                 }))
               }
-              showResidenceDetails
               showValidationErrors={showValidationErrors}
               missing={missingFields}
               pathPrefix="couple.vendeur1"
@@ -3002,7 +2811,6 @@ export default function VendeurFormPage() {
                   couple: { ...prev.couple, vendeur2: data }
                 }))
               }
-              showResidenceDetails
               showValidationErrors={showValidationErrors}
               missing={missingFields}
               pathPrefix="couple.vendeur2"
@@ -3072,7 +2880,6 @@ export default function VendeurFormPage() {
                     data={personne}
                     onChange={(data) => updateIndivisionPerson(index, data)}
                     showCivilite
-                    showResidenceDetails
                     showValidationErrors={showValidationErrors}
                     missing={missingFields}
                     pathPrefix={index === 0 ? "personne" : `indivision.${index}`}

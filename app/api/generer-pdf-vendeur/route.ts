@@ -85,13 +85,8 @@ function pickRepresentative(body: any) {
   return null
 }
 
-function buildVendeurSubject(body: any) {
-  const typeLabel = body?.type || "vendeur"
-  const representative = pickRepresentative(body)
-  const personLabel = formatPersonForSubject(representative)
-
-  if (personLabel) return `Nouveau formulaire vendeur - ${typeLabel} / ${personLabel}`
-  return `Nouveau formulaire vendeur - ${typeLabel}`
+function buildVendeurSubject(_body: any) {
+  return "Accusé de réception — fiche vendeur reçue + documents"
 }
 
 function collectEmails(body: any): string[] {
@@ -151,152 +146,7 @@ function formatPersonInfo(p: any, index?: number): string {
   return info.length > 0 ? `<div style="margin-bottom:12px;padding:8px;background:#f8fafc;border-radius:4px;">${info.join("<br />")}</div>` : ""
 }
 
-function buildEmailHTML(data: any) {
-  const title = "Nouveau formulaire vendeur"
-  
-  let contentHTML = ""
-  
-  // Informations générales
-  contentHTML += `<div style="background:#f0f9ff;border-left:4px solid #0072BC;padding:12px 14px;border-radius:6px;margin-bottom:16px;">
-    <p style="margin:4px 0;"><strong>Type de vendeur :</strong> ${data?.type || "non précisé"}</p>
-    <p style="margin:4px 0;"><strong>Nombre de vendeurs déclarés :</strong> ${data?.nombreVendeurs || "-"}</p>
-  </div>`
-
-  contentHTML += `<div style="background:#ecfdf3;border:1px solid #bbf7d0;color:#166534;padding:10px 12px;border-radius:6px;margin-bottom:16px;font-size:13px;line-height:1.5;">
-    Merci d’envoyer les copies de vos pièces d’identité directement à l’agence à l’adresse <strong>contact@alvimobilier.bzh</strong>.<br />
-    Ne répondez pas au mail automatique qui vous transmet cette fiche de renseignements.
-  </div>`
-  
-  // Personne seule
-  if (data?.type === "personne_seule" && data?.personne) {
-    contentHTML += `<div style="margin-bottom:16px;">
-      <h2 style="color:#0072BC;font-size:16px;margin:0 0 8px;">Personne seule</h2>
-      ${formatPersonInfo(data.personne)}
-    </div>`
-  }
-  
-  // Couple
-  if (data?.type?.startsWith("couple")) {
-    contentHTML += `<div style="margin-bottom:16px;">
-      <h2 style="color:#0072BC;font-size:16px;margin:0 0 8px;">Couple</h2>
-      ${data?.couple?.vendeur1 ? formatPersonInfo(data.couple.vendeur1, 1) : ""}
-      ${data?.couple?.vendeur2 ? formatPersonInfo(data.couple.vendeur2, 2) : ""}
-    </div>`
-  }
-  
-  // Indivision
-  if (data?.type === "indivision" && Array.isArray(data?.indivision)) {
-    contentHTML += `<div style="margin-bottom:16px;">
-      <h2 style="color:#0072BC;font-size:16px;margin:0 0 8px;">Indivision (${data.indivision.length} vendeur(s))</h2>
-      ${data.indivision.map((p: any, i: number) => formatPersonInfo(p, i + 1)).join("")}
-    </div>`
-  }
-
-  // Société
-  if (data?.type === "societe" && data?.societe) {
-    const s = data.societe
-    contentHTML += `<div style="margin-bottom:16px;">
-      <h2 style="color:#0072BC;font-size:16px;margin:0 0 8px;">Société</h2>
-      <div style="margin-bottom:12px;padding:8px;background:#f8fafc;border-radius:4px;">
-        <strong>Dénomination :</strong> ${safe(s.denomination)}<br />
-        <strong>Forme :</strong> ${safe(s.forme)}<br />
-        <strong>Capital :</strong> ${safe(s.capital)} €<br />
-        <strong>Siège :</strong> ${safe(s.siege)}<br />
-        <strong>RCS :</strong> ${safe(s.villeRcs)} / ${safe(s.numeroRcs)}<br />
-        <strong>Téléphone :</strong> ${safe(s.telephone)}<br />
-        <strong>Email :</strong> ${safe(s.email)}
-      </div>
-    </div>`
-  }
-
-  // Entreprise individuelle
-  if (data?.type === "entreprise_individuelle" && data?.ei) {
-    const ei = data.ei
-    contentHTML += `<div style="margin-bottom:16px;">
-      <h2 style="color:#0072BC;font-size:16px;margin:0 0 8px;">Entreprise individuelle</h2>
-      <div style="margin-bottom:12px;padding:8px;background:#f8fafc;border-radius:4px;">
-        <strong>Nom :</strong> ${safe(ei.nom)} ${safe(ei.prenom)}<br />
-        <strong>Adresse :</strong> ${safe(ei.adresse)}<br />
-        <strong>Registre :</strong> ${safe(ei.registre)} ${safe(ei.registrePrecision)}<br />
-        <strong>Numéro :</strong> ${safe(ei.numero)}<br />
-        <strong>Code APE :</strong> ${safe(ei.codeApe)}
-      </div>
-    </div>`
-  }
-
-  // Association
-  if (data?.type === "association" && data?.association) {
-    const a = data.association
-    contentHTML += `<div style="margin-bottom:16px;">
-      <h2 style="color:#0072BC;font-size:16px;margin:0 0 8px;">Association</h2>
-      <div style="margin-bottom:12px;padding:8px;background:#f8fafc;border-radius:4px;">
-        <strong>Dénomination :</strong> ${safe(a.denomination)}<br />
-        <strong>Siège :</strong> ${safe(a.siege)}<br />
-        <strong>RNA :</strong> ${safe(a.numeroRna)} – SIREN : ${safe(a.numeroSiren)}<br />
-        <strong>Téléphone :</strong> ${safe(a.telephone)}<br />
-        <strong>Email :</strong> ${safe(a.email)}
-      </div>
-    </div>`
-  }
-
-  // Personne morale autre
-  if (data?.type === "personne_morale_autre" && data?.personneMorale) {
-    const pm = data.personneMorale
-    contentHTML += `<div style="margin-bottom:16px;">
-      <h2 style="color:#0072BC;font-size:16px;margin:0 0 8px;">Autre personne morale</h2>
-      <div style="margin-bottom:12px;padding:8px;background:#f8fafc;border-radius:4px;">
-        <strong>Description :</strong> ${safe(pm.description)}<br />
-        <strong>Téléphone :</strong> ${safe(pm.telephone)}<br />
-        <strong>Email :</strong> ${safe(pm.email)}
-      </div>
-    </div>`
-  }
-
-  // Mineur
-  if (data?.type === "mineur" && data?.mineur) {
-    const m = data.mineur
-    contentHTML += `<div style="margin-bottom:16px;">
-      <h2 style="color:#0072BC;font-size:16px;margin:0 0 8px;">Mineur</h2>
-      <div style="margin-bottom:12px;padding:8px;background:#f8fafc;border-radius:4px;">
-        <strong>Nom :</strong> ${safe(m.nom)} ${safe(m.prenom)}<br />
-        <strong>Naissance :</strong> ${safe(m.dateNaissance)} à ${safe(m.lieuNaissance)}<br />
-        <strong>Nationalité :</strong> ${safe(m.nationalite)}<br />
-        <strong>Adresse :</strong> ${safe(m.adresse)}<br />
-        <strong>Autorité :</strong> ${safe(m.autorite)}
-      </div>
-    </div>`
-  }
-
-  // Majeur protégé
-  if (data?.type === "majeur_protege" && data?.majeurProtege) {
-    const mp = data.majeurProtege
-    contentHTML += `<div style="margin-bottom:16px;">
-      <h2 style="color:#0072BC;font-size:16px;margin:0 0 8px;">Majeur protégé</h2>
-      <div style="margin-bottom:12px;padding:8px;background:#f8fafc;border-radius:4px;">
-        <strong>Nom :</strong> ${safe(mp.nom)} ${safe(mp.prenom)}<br />
-        <strong>Naissance :</strong> ${safe(mp.dateNaissance)} à ${safe(mp.lieuNaissance)}<br />
-        <strong>Mesure :</strong> ${safe(mp.mesure)} (${safe(mp.mesureDetails)})<br />
-        <strong>Représentant :</strong> ${safe(mp.representantPrenom)} ${safe(mp.representantNom)} (${safe(mp.representantQualite)})<br />
-        <strong>Téléphone :</strong> ${safe(mp.telephone)}<br />
-        <strong>Email :</strong> ${safe(mp.email)}
-      </div>
-    </div>`
-  }
-
-  // Autre situation
-  if (data?.type === "autre" && data?.autreSituation) {
-    const a = data.autreSituation
-    contentHTML += `<div style="margin-bottom:16px;">
-      <h2 style="color:#0072BC;font-size:16px;margin:0 0 8px;">Autre situation</h2>
-      <div style="margin-bottom:12px;padding:8px;background:#f8fafc;border-radius:4px;">
-        <strong>Description :</strong> ${safe(a.description)}<br />
-        <strong>Contact :</strong> ${safe(a.contactPrenom)} ${safe(a.contactNom)}<br />
-        <strong>Téléphone :</strong> ${safe(a.telephone)}<br />
-        <strong>Email :</strong> ${safe(a.email)}
-      </div>
-    </div>`
-  }
-  
+function buildEmailHTML(_data: any) {
   return `
 <!DOCTYPE html>
 <html>
@@ -310,15 +160,36 @@ function buildEmailHTML(data: any) {
       ⚠️ Ce message est envoyé automatiquement. Merci de ne pas y répondre.<br />
       Pour toute question, contactez l'agence au 02 98 26 71 47 ou par mail à contact@alvimobilier.bzh.
     </div>
-    <h1 style="color:#0072BC;font-size:20px;margin:0 0 12px;">${title}</h1>
-    ${contentHTML}
+    <h1 style="color:#0072BC;font-size:20px;margin:0 0 12px;">Accusé de réception — fiche de renseignement vendeur</h1>
+    <p style="margin:0 0 12px;">Bonjour,</p>
+    <p style="margin:0 0 16px;">✅ Nous accusons bonne réception de votre fiche de renseignement vendeur.</p>
+    <p style="margin:0 0 8px;">Pour la suite, merci de :</p>
+    <p style="margin:0 0 4px;"><strong>1)</strong> Vérifier votre fiche</p>
+    <p style="margin:0 0 8px;"><strong>2)</strong> Nous transmettre les documents listés ci-dessous :</p>
+    <ul style="margin:0 0 12px 20px;padding:0;">
+      <li>Titre de propriété (ou acte notarié)</li>
+      <li>Liste des indivisaires (si indivision)</li>
+      <li>Pièces d'identité en cours de validité (recto/verso)</li>
+      <li>Justificatif de domicile de moins de 3 mois</li>
+      <li>Taxe foncière (dernier avis)</li>
+      <li>Assainissement (attestation de conformité ou document en cours)</li>
+      <li>Diagnostics immobiliers (DPE, amiante, plomb, termites, assainissement selon cas)</li>
+      <li>Devis et plans (travaux réalisés ou prévus, si concerné)</li>
+    </ul>
+    <p style="margin:0 0 12px;font-size:13px;color:#475569;">Si vous nous avez déjà envoyé certains de ces documents, inutile de les renvoyer.</p>
+    <p style="margin:0 0 16px;">📩 Envoi : <a href="mailto:contact@alvimobilier.bzh">contact@alvimobilier.bzh</a></p>
+    <p style="margin:0 0 4px;">Bien cordialement,</p>
+    <p style="margin:0 0 4px;"><strong>ALV Immobilier</strong></p>
+    <p style="margin:0 0 4px;font-size:12px;color:#64748b;">SAS ALV IMMOBILIER TRANSACTIONS, LOCATIONS, ADMINISTRATEUR DE BIENS.</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#64748b;">19 Place Charles de Gaulle 29190 PLEYBEN</p>
+    <p style="margin:0 0 4px;font-size:12px;color:#64748b;">02 98 26 71 47</p>
     <div style="background:#ecfdf3;border:1px solid #bbf7d0;border-radius:6px;padding:10px 12px;margin-top:16px;">
       <p style="margin:0;color:#166534;font-weight:600;">📄 PDF de la fiche vendeur joint</p>
     </div>
   </div>
 </body>
 </html>
-  `
+  `.trim()
 }
 
 function formatPersonInfoText(p: any, index?: number): string {
@@ -346,161 +217,41 @@ function formatPersonInfoText(p: any, index?: number): string {
   return info.length > 0 ? info.join("\n") : ""
 }
 
-function buildEmailText(data: any) {
-  const lines: string[] = [
+function buildEmailText(_data: any) {
+  return [
     "⚠️ Ce message est envoyé automatiquement. Merci de ne pas y répondre.",
     "Pour toute question, contactez l'agence au 02 98 26 71 47 ou par mail à contact@alvimobilier.bzh.",
     "",
-    "Nouveau formulaire vendeur",
-    `Type de vendeur : ${data?.type || "non précisé"}`,
-    `Nombre de vendeurs déclarés : ${data?.nombreVendeurs || "-"}`,
+    "Accusé de réception — fiche de renseignement vendeur",
     "",
-    "Merci d’envoyer les copies de vos pièces d’identité directement à l’agence à l’adresse contact@alvimobilier.bzh.",
-    "Ne répondez pas au mail automatique qui vous transmet cette fiche.",
+    "Bonjour,",
     "",
-  ]
-  
-  // Personne seule
-  if (data?.type === "personne_seule" && data?.personne) {
-    lines.push("Personne seule")
-    lines.push(formatPersonInfoText(data.personne))
-    lines.push("")
-  }
-  
-  // Couple
-  if (data?.type?.startsWith("couple")) {
-    lines.push("Couple")
-    if (data?.couple?.vendeur1) {
-      lines.push(formatPersonInfoText(data.couple.vendeur1, 1))
-      lines.push("")
-    }
-    if (data?.couple?.vendeur2) {
-      lines.push(formatPersonInfoText(data.couple.vendeur2, 2))
-      lines.push("")
-    }
-  }
-  
-  // Indivision
-  if (data?.type === "indivision" && Array.isArray(data?.indivision)) {
-    lines.push(`Indivision (${data.indivision.length} vendeur(s))`)
-    data.indivision.forEach((p: any, i: number) => {
-      const info = formatPersonInfoText(p, i + 1)
-      if (info) {
-        lines.push(info)
-        lines.push("")
-      }
-    })
-  }
-
-  if (data?.type === "societe" && data?.societe) {
-    const s = data.societe
-    lines.push("Société")
-    lines.push(
-      [
-        `Dénomination : ${safe(s.denomination)}`,
-        `Forme : ${safe(s.forme)}`,
-        `Capital : ${safe(s.capital)}`,
-        `Siège : ${safe(s.siege)}`,
-        `RCS : ${safe(s.villeRcs)} / ${safe(s.numeroRcs)}`,
-        `Téléphone : ${safe(s.telephone)}`,
-        `Email : ${safe(s.email)}`,
-      ].join("\n")
-    )
-    lines.push("")
-  }
-
-  if (data?.type === "entreprise_individuelle" && data?.ei) {
-    const ei = data.ei
-    lines.push("Entreprise individuelle")
-    lines.push(
-      [
-        `Nom : ${safe(ei.nom)} ${safe(ei.prenom)}`,
-        `Adresse : ${safe(ei.adresse)}`,
-        `Registre : ${safe(ei.registre)} ${safe(ei.registrePrecision)}`,
-        `Numéro : ${safe(ei.numero)}`,
-        `Code APE : ${safe(ei.codeApe)}`,
-      ].join("\n")
-    )
-    lines.push("")
-  }
-
-  if (data?.type === "association" && data?.association) {
-    const a = data.association
-    lines.push("Association")
-    lines.push(
-      [
-        `Dénomination : ${safe(a.denomination)}`,
-        `Siège : ${safe(a.siege)}`,
-        `RNA : ${safe(a.numeroRna)} - SIREN : ${safe(a.numeroSiren)}`,
-        `Téléphone : ${safe(a.telephone)}`,
-        `Email : ${safe(a.email)}`,
-      ].join("\n")
-    )
-    lines.push("")
-  }
-
-  if (data?.type === "personne_morale_autre" && data?.personneMorale) {
-    const pm = data.personneMorale
-    lines.push("Autre personne morale")
-    lines.push(
-      [
-        `Description : ${safe(pm.description)}`,
-        `Téléphone : ${safe(pm.telephone)}`,
-        `Email : ${safe(pm.email)}`,
-      ].join("\n")
-    )
-    lines.push("")
-  }
-
-  if (data?.type === "mineur" && data?.mineur) {
-    const m = data.mineur
-    lines.push("Mineur")
-    lines.push(
-      [
-        `Nom : ${safe(m.nom)} ${safe(m.prenom)}`,
-        `Naissance : ${safe(m.dateNaissance)} à ${safe(m.lieuNaissance)}`,
-        `Nationalité : ${safe(m.nationalite)}`,
-        `Adresse : ${safe(m.adresse)}`,
-        `Autorité : ${safe(m.autorite)}`,
-      ].join("\n")
-    )
-    lines.push("")
-  }
-
-  if (data?.type === "majeur_protege" && data?.majeurProtege) {
-    const mp = data.majeurProtege
-    lines.push("Majeur protégé")
-    lines.push(
-      [
-        `Nom : ${safe(mp.nom)} ${safe(mp.prenom)}`,
-        `Naissance : ${safe(mp.dateNaissance)} à ${safe(mp.lieuNaissance)}`,
-        `Mesure : ${safe(mp.mesure)} (${safe(mp.mesureDetails)})`,
-        `Représentant : ${safe(mp.representantPrenom)} ${safe(mp.representantNom)} (${safe(mp.representantQualite)})`,
-        `Téléphone : ${safe(mp.telephone)}`,
-        `Email : ${safe(mp.email)}`,
-      ].join("\n")
-    )
-    lines.push("")
-  }
-
-  if (data?.type === "autre" && data?.autreSituation) {
-    const a = data.autreSituation
-    lines.push("Autre situation")
-    lines.push(
-      [
-        `Description : ${safe(a.description)}`,
-        `Contact : ${safe(a.contactPrenom)} ${safe(a.contactNom)}`,
-        `Téléphone : ${safe(a.telephone)}`,
-        `Email : ${safe(a.email)}`,
-      ].join("\n")
-    )
-    lines.push("")
-  }
-  
-  lines.push("PDF en pièce jointe.")
-  lines.push("Message automatique ALV Immobilier")
-  
-  return lines.filter(Boolean).join("\n")
+    "✅ Nous accusons bonne réception de votre fiche de renseignement vendeur.",
+    "",
+    "Pour la suite, merci de :",
+    "1) Vérifier votre fiche",
+    "2) Nous transmettre les documents listés ci-dessous :",
+    "- Titre de propriété (ou acte notarié)",
+    "- Liste des indivisaires (si indivision)",
+    "- Pièces d'identité en cours de validité (recto/verso)",
+    "- Justificatif de domicile de moins de 3 mois",
+    "- Taxe foncière (dernier avis)",
+    "- Assainissement (attestation de conformité ou document en cours)",
+    "- Diagnostics immobiliers (DPE, amiante, plomb, termites, assainissement selon cas)",
+    "- Devis et plans (travaux réalisés ou prévus, si concerné)",
+    "",
+    "Si vous nous avez déjà envoyé certains de ces documents, inutile de les renvoyer.",
+    "",
+    "📩 Envoi : contact@alvimobilier.bzh",
+    "",
+    "Bien cordialement,",
+    "ALV Immobilier",
+    "SAS ALV IMMOBILIER TRANSACTIONS, LOCATIONS, ADMINISTRATEUR DE BIENS.",
+    "19 Place Charles de Gaulle 29190 PLEYBEN",
+    "02 98 26 71 47",
+    "",
+    "📄 PDF de la fiche vendeur joint",
+  ].join("\n")
 }
 
 export async function POST(request: Request) {

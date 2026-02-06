@@ -124,6 +124,21 @@ export default function GarantFormPage() {
     }
   }
 
+  const REVENU_KEYS = [
+    "salaireNet",
+    "indemnitesChomage",
+    "aahAllocationsHandicap",
+    "rsa",
+    "pension",
+    "revenusAutoEntrepreneur",
+    "aidesAuLogement",
+  ] as const
+
+  const hasAtLeastOneRevenu = (garant: Locataire): boolean =>
+    REVENU_KEYS.some(
+      (key) => garant[key] != null && String(garant[key]).trim() !== ""
+    )
+
   const requiredFields: (keyof Locataire)[] = [
     "nom",
     "prenom",
@@ -133,7 +148,7 @@ export default function GarantFormPage() {
     "adresseActuelle",
     "telephone",
     "email",
-    "typeContrat"
+    "typeContrat",
   ]
 
   const computeMissingPaths = () => {
@@ -145,6 +160,9 @@ export default function GarantFormPage() {
           paths.push(`garant_${index}_${field}`)
         }
       })
+      if (!hasAtLeastOneRevenu(garant)) {
+        paths.push(`garant_${index}_revenusMensuels`)
+      }
     })
     return paths
   }
@@ -404,7 +422,7 @@ export default function GarantFormPage() {
               <div className="bg-rose-50 border border-rose-200 rounded-lg px-4 py-3 flex items-center gap-2">
                 <Info className="h-5 w-5 text-rose-600" />
                 <span className="text-rose-800 text-sm">
-                  Merci de remplir les champs obligatoires : Identite et Type de contrat.
+                  Merci de remplir les champs obligatoires : identité, type de contrat et au moins un revenu mensuel par garant.
                 </span>
               </div>
             )}
