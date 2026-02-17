@@ -352,6 +352,7 @@ const createEmptyPerson = (): PersonneBuyer => ({
   adresse: "",
   telephone: "",
   email: "",
+  profession: "",
   residenceFiscaleFrance: "",
   residenceFiscalePays: "",
   residenceFiscaleAdresse: "",
@@ -607,6 +608,7 @@ const buildSamplePersonBuyer = (index: number, situationMatrimoniale?: Situation
     adresse: buildTestAddress(),
     telephone: buildTestPhone(),
     email: buildTestEmail(`acquereur${index}`),
+    profession: sampleJob(),
     residenceFiscaleFrance: "oui",
     residenceFiscalePays: "",
     residenceFiscaleAdresse: "",
@@ -1146,6 +1148,14 @@ function PersonBuyerCard({
           </ModernFormField>
           <ModernFormField label="Adresse e-mail" required isMissing={isMissing("email")} fieldId={fieldId("email")}>
             <Input type="email" value={data.email} onChange={(e) => update("email", e.target.value)} autoComplete="email" />
+          </ModernFormField>
+          <ModernFormField label="Profession" fieldId={fieldId("profession")}>
+            <Input
+              type="text"
+              value={data.profession}
+              onChange={(e) => update("profession", e.target.value)}
+              placeholder="Ex : Enseignant, infirmier, artisan…"
+            />
           </ModernFormField>
         </div>
       </ModernFormSection>

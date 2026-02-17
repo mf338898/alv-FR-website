@@ -86,6 +86,7 @@ interface PersonneSeller {
   adresse: string
   telephone: string
   email: string
+  profession: string
   residenceFiscaleFrance: OuiNon
   residenceFiscalePays: string
   residenceFiscaleAdresse: string
@@ -338,6 +339,7 @@ const createEmptyPerson = (): PersonneSeller => ({
   adresse: "",
   telephone: "",
   email: "",
+  profession: "",
   residenceFiscaleFrance: "",
   residenceFiscalePays: "",
   residenceFiscaleAdresse: "",
@@ -579,6 +581,7 @@ const buildSamplePersonSeller = (index: number, situationMatrimoniale?: Situatio
     adresse: buildTestAddress(),
     telephone: buildTestPhone(),
     email: buildTestEmail(`vendeur${index}`),
+    profession: sampleJob(),
     residenceFiscaleFrance: "oui",
     residenceFiscalePays: "",
     residenceFiscaleAdresse: "",
@@ -1095,6 +1098,14 @@ function PersonSellerCard({
           </ModernFormField>
           <ModernFormField label="Adresse e-mail" required isMissing={isMissing("email")} fieldId={fieldId("email")}>
             <Input type="email" value={data.email} onChange={(e) => update("email", e.target.value)} autoComplete="email" />
+          </ModernFormField>
+          <ModernFormField label="Profession" fieldId={fieldId("profession")}>
+            <Input
+              type="text"
+              value={data.profession}
+              onChange={(e) => update("profession", e.target.value)}
+              placeholder="Ex : Enseignant, infirmier, artisan…"
+            />
           </ModernFormField>
         </div>
       </ModernFormSection>

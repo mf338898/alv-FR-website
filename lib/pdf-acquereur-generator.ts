@@ -411,6 +411,7 @@ async function drawSingleLeftAlignedColumnWithBreaks(ctx: DocContext, p?: any, p
     { label: "Prénom", value: pdfSafe(toTitleCase(p?.prenom) || dash) },
     { label: "Date et lieu de naissance", value: pdfSafe(dateLieu) },
     { label: "Nationalité", value: pdfSafe(showOrDash(p?.nationalite)) },
+    { label: "Profession", value: pdfSafe(showOrDash(p?.profession)) },
     { label: "Email", value: pdfSafe(showOrDash(p?.email)) },
     { label: "Téléphone", value: pdfSafe(showOrDash(p?.telephone)) },
     { label: "Adresse de résidence", value: pdfSafe(showOrDash(p?.adresse)) },
