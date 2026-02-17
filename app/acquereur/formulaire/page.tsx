@@ -86,6 +86,7 @@ interface PersonneBuyer {
   adresse: string
   telephone: string
   email: string
+  profession: string
   residenceFiscaleFrance: OuiNon
   residenceFiscalePays: string
   residenceFiscaleAdresse: string
