@@ -355,7 +355,7 @@ const createEmptyPerson = (): PersonneSeller => ({
     autreDescription: ""
   },
   representation: {
-    clause: "",
+    clause: "non",
     nom: "",
     prenom: "",
     adresse: "",
@@ -1004,78 +1004,6 @@ function PersonSellerCard({
           </ModernFormField>
 
           <SituationMatrimonialeFields data={data} onChange={onChange} />
-        </div>
-      </ModernFormSection>
-
-      <ModernFormSection
-        title="Clause de représentation"
-        subtitle="Uniquement pour les personnes physiques"
-        icon={<Users className="h-5 w-5" />}
-      >
-        <div className="space-y-4">
-          <ModernFormField
-            label="Souhaitez-vous insérer une clause de représentation ?"
-            required
-            isMissing={isMissing("representation.clause")}
-            fieldId={fieldId("representation.clause")}
-          >
-            <Select value={data.representation.clause} onValueChange={(val: ClauseRepresentationOption) => updateRepresentation("clause", val)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Choisir une option" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="non">Non</SelectItem>
-                <SelectItem value="oui">Oui</SelectItem>
-                <SelectItem value="habilitation">Oui, habilitation familiale</SelectItem>
-              </SelectContent>
-            </Select>
-          </ModernFormField>
-
-          {data.representation.clause === "oui" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ModernFormField label="Nom du représentant" required isMissing={isMissing("representation.nom")} fieldId={fieldId("representation.nom")}>
-                <Input value={data.representation.nom} onChange={(e) => updateRepresentation("nom", e.target.value)} />
-              </ModernFormField>
-              <ModernFormField label="Prénom du représentant" required isMissing={isMissing("representation.prenom")} fieldId={fieldId("representation.prenom")}>
-                <Input value={data.representation.prenom} onChange={(e) => updateRepresentation("prenom", e.target.value)} />
-              </ModernFormField>
-              <ModernFormField label="Adresse du représentant" required isMissing={isMissing("representation.adresse")} fieldId={fieldId("representation.adresse")}>
-                <AddressAutocompleteField value={data.representation.adresse} onChange={(val) => updateRepresentation("adresse", val)} placeholder="Adresse complète" />
-              </ModernFormField>
-              <ModernFormField label="Numéro de téléphone" required isMissing={isMissing("representation.telephone")} fieldId={fieldId("representation.telephone")}>
-                <Input value={data.representation.telephone} onChange={(e) => updateRepresentation("telephone", e.target.value)} autoComplete="tel" />
-              </ModernFormField>
-              <ModernFormField label="Adresse mail" required isMissing={isMissing("representation.email")} fieldId={fieldId("representation.email")}>
-                <Input type="email" value={data.representation.email} onChange={(e) => updateRepresentation("email", e.target.value)} autoComplete="email" />
-              </ModernFormField>
-            </div>
-          )}
-
-          {data.representation.clause === "habilitation" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <ModernFormField label="Nom du représentant" required isMissing={isMissing("representation.nom")} fieldId={fieldId("representation.nom")}>
-                <Input value={data.representation.nom} onChange={(e) => updateRepresentation("nom", e.target.value)} />
-              </ModernFormField>
-              <ModernFormField label="Prénom du représentant" required isMissing={isMissing("representation.prenom")} fieldId={fieldId("representation.prenom")}>
-                <Input value={data.representation.prenom} onChange={(e) => updateRepresentation("prenom", e.target.value)} />
-              </ModernFormField>
-              <ModernFormField label="Numéro de téléphone" required isMissing={isMissing("representation.telephone")} fieldId={fieldId("representation.telephone")}>
-                <Input value={data.representation.telephone} onChange={(e) => updateRepresentation("telephone", e.target.value)} autoComplete="tel" />
-              </ModernFormField>
-              <ModernFormField label="Adresse mail" required isMissing={isMissing("representation.email")} fieldId={fieldId("representation.email")}>
-                <Input type="email" value={data.representation.email} onChange={(e) => updateRepresentation("email", e.target.value)} autoComplete="email" />
-              </ModernFormField>
-              <ModernFormField label="Nom du juge" required isMissing={isMissing("representation.juge")} fieldId={fieldId("representation.juge")}>
-                <Input value={data.representation.juge} onChange={(e) => updateRepresentation("juge", e.target.value)} />
-              </ModernFormField>
-              <ModernFormField label="Ville du tribunal" required isMissing={isMissing("representation.tribunal")} fieldId={fieldId("representation.tribunal")}>
-                <Input value={data.representation.tribunal} onChange={(e) => updateRepresentation("tribunal", e.target.value)} />
-              </ModernFormField>
-              <ModernFormField label="Date de l’ordonnance" required isMissing={isMissing("representation.dateOrdonnance")} fieldId={fieldId("representation.dateOrdonnance")}>
-                <Input type="date" value={data.representation.dateOrdonnance} onChange={(e) => updateRepresentation("dateOrdonnance", e.target.value)} />
-              </ModernFormField>
-            </div>
-          )}
         </div>
       </ModernFormSection>
 
@@ -2145,14 +2073,21 @@ export default function ProprietaireFormPage() {
     }
   }
 
-  const validatePerson = (p: PersonneSeller, prefix: string): string[] => {
+  const validatePerson = (
+    p: PersonneSeller,
+    prefix: string,
+    options?: {
+      requireCivilite?: boolean
+    }
+  ): string[] => {
     const missing: string[] = []
+    const { requireCivilite = true } = options || {}
     const require = (key: string, cond: boolean = true) => {
       if (cond && (!p[key as keyof PersonneSeller] || String(p[key as keyof PersonneSeller]).trim() === "")) {
         missing.push(`${prefix}.${key}`)
       }
     }
-    require("civilite")
+    require("civilite", requireCivilite)
     require("nom")
     require("prenom")
     require("dateNaissance")
@@ -2162,25 +2097,6 @@ export default function ProprietaireFormPage() {
     require("telephone")
     require("email")
     require("situationMatrimoniale")
-    if (!p.representation.clause) {
-      missing.push(`${prefix}.representation.clause`)
-    }
-    if (p.representation.clause === "oui") {
-      if (!p.representation.nom.trim()) missing.push(`${prefix}.representation.nom`)
-      if (!p.representation.prenom.trim()) missing.push(`${prefix}.representation.prenom`)
-      if (!p.representation.adresse.trim()) missing.push(`${prefix}.representation.adresse`)
-      if (!p.representation.telephone.trim()) missing.push(`${prefix}.representation.telephone`)
-      if (!p.representation.email.trim()) missing.push(`${prefix}.representation.email`)
-    }
-    if (p.representation.clause === "habilitation") {
-      if (!p.representation.nom.trim()) missing.push(`${prefix}.representation.nom`)
-      if (!p.representation.prenom.trim()) missing.push(`${prefix}.representation.prenom`)
-      if (!p.representation.telephone.trim()) missing.push(`${prefix}.representation.telephone`)
-      if (!p.representation.email.trim()) missing.push(`${prefix}.representation.email`)
-      if (!p.representation.juge.trim()) missing.push(`${prefix}.representation.juge`)
-      if (!p.representation.tribunal.trim()) missing.push(`${prefix}.representation.tribunal`)
-      if (!p.representation.dateOrdonnance.trim()) missing.push(`${prefix}.representation.dateOrdonnance`)
-    }
     return missing
   }
 
@@ -2215,8 +2131,8 @@ export default function ProprietaireFormPage() {
       })
     }
     if (isCouple) {
-      missing.push(...validatePerson(state.couple.vendeur1, "couple.vendeur1"))
-      missing.push(...validatePerson(state.couple.vendeur2, "couple.vendeur2"))
+      missing.push(...validatePerson(state.couple.vendeur1, "couple.vendeur1", { requireCivilite: false }))
+      missing.push(...validatePerson(state.couple.vendeur2, "couple.vendeur2", { requireCivilite: false }))
     }
 
     if (missing.length) {
