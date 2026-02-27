@@ -328,7 +328,7 @@ const branchSectionsByType: Record<VendeurType, BranchSectionKey[]> = {
 }
 
 const situationOptions: Array<{ value: SituationMatrimoniale; label: string }> = [
-  { value: "marie", label: "Il est marié" },
+  { value: "marie", label: "Marié" },
   { value: "pacs", label: "Célibataire lié par un PACS" },
   { value: "celibataire", label: "Célibataire" },
   { value: "veuf", label: "Veuf non remarié" },
