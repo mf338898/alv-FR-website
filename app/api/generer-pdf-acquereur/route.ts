@@ -10,6 +10,16 @@ import {
 
 const safe = (v?: string | null) => (v && v.trim() ? v.trim() : "-")
 
+function formatDateFR(input?: string | null) {
+  if (!input || !input.trim()) return "-"
+  const s = input.trim()
+  const dmy = s.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})$/)
+  if (dmy) return `${dmy[1].padStart(2, "0")}/${dmy[2].padStart(2, "0")}/${dmy[3]}`
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`
+  return s
+}
+
 function formatCivilitePrefix(civilite?: string) {
   const normalized = civilite?.trim().toLowerCase()
   if (normalized === "monsieur") return "M."
@@ -134,7 +144,7 @@ function formatPersonInfo(p: any, index?: number): string {
   if (p.email) info.push(`<strong>Email :</strong> ${p.email}`)
   if (p.telephone) info.push(`<strong>Téléphone :</strong> ${p.telephone}`)
   if (p.adresse) info.push(`<strong>Adresse :</strong> ${p.adresse}`)
-  if (p.dateNaissance) info.push(`<strong>Date de naissance :</strong> ${p.dateNaissance}`)
+  if (p.dateNaissance) info.push(`<strong>Date de naissance :</strong> ${formatDateFR(p.dateNaissance)}`)
   if (p.lieuNaissance) info.push(`<strong>Lieu de naissance :</strong> ${p.lieuNaissance}`)
   if (p.nationalite) info.push(`<strong>Nationalité :</strong> ${p.nationalite}`)
   if (p.situationMatrimoniale) info.push(`<strong>Situation matrimoniale :</strong> ${p.situationMatrimoniale}`)
@@ -207,7 +217,7 @@ function formatPersonInfoText(p: any, index?: number): string {
   if (p.email) info.push(`Email : ${p.email}`)
   if (p.telephone) info.push(`Téléphone : ${p.telephone}`)
   if (p.adresse) info.push(`Adresse : ${p.adresse}`)
-  if (p.dateNaissance) info.push(`Date de naissance : ${p.dateNaissance}`)
+  if (p.dateNaissance) info.push(`Date de naissance : ${formatDateFR(p.dateNaissance)}`)
   if (p.lieuNaissance) info.push(`Lieu de naissance : ${p.lieuNaissance}`)
   if (p.nationalite) info.push(`Nationalité : ${p.nationalite}`)
   if (p.situationMatrimoniale) info.push(`Situation matrimoniale : ${p.situationMatrimoniale}`)

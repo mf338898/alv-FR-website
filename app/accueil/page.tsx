@@ -20,7 +20,7 @@ export default function ALVImmobilierHome() {
               <div className="relative group">
                 <Image
                   src="/images/logo-alv-2.jpg"
-                  alt="Logo ALV Pleyben Immobilier"
+                  alt="Logo ALV Immobilier Pleyben"
                   width={180}
                   height={60}
                   className="h-12 w-auto transition-transform duration-300 group-hover:scale-105"
@@ -30,7 +30,7 @@ export default function ALVImmobilierHome() {
               </div>
               <div className="hidden sm:block">
                 <h2 className="text-lg font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-                  ALV Pleyben Immobilier
+                  ALV Immobilier Pleyben
                 </h2>
                 <p className="text-xs text-slate-500 font-medium">Votre partenaire immobilier de confiance</p>
               </div>
@@ -492,12 +492,21 @@ export default function ALVImmobilierHome() {
               <h3 className="text-lg font-semibold mb-4">Informations</h3>
               <div className="space-y-3 text-sm text-slate-400">
                 <p>Carte Professionnelle n° 2903 2016 000 009 781</p>
-                <p>Compte séquestre CMB 045454259149</p>
                 <p>Garantie SOCAF 120 000 €</p>
                 <p>SAS au capital de 5720 €</p>
                 <p>Siret 440 808 913 00014</p>
                 <p>R.C.S. Quimper 440 808 913</p>
                 <p>NAF 6831Z</p>
+                <p>
+                  <Link href="/pieces-justificatives" className="text-slate-300 hover:text-white transition-colors duration-200 underline-offset-4 hover:underline">
+                    Pièces justificatives à prévoir
+                  </Link>
+                </p>
+                <p>
+                  <Link href="/demande-estimation" className="text-slate-300 hover:text-white transition-colors duration-200 underline-offset-4 hover:underline">
+                    Autre demande / estimation
+                  </Link>
+                </p>
               </div>
             </div>
           </div>

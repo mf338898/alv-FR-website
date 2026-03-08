@@ -653,7 +653,7 @@ async function drawMineur(ctx: DocContext, data: any) {
   await drawRowsSection(ctx, "Mineur vendeur", [
     { label: "Nom", value: toValue(m.nom) },
     { label: "Prénom", value: toValue(m.prenom) },
-    { label: "Date de naissance", value: toValue(m.dateNaissance) },
+    { label: "Date de naissance", value: toValue(formatDateFR(m.dateNaissance)) },
     { label: "Lieu de naissance", value: toValue(m.lieuNaissance) },
     { label: "Nationalité", value: toValue(m.nationalite) },
     { label: "Adresse", value: toValue(m.adresse) },
@@ -713,7 +713,7 @@ async function drawMajeurProtege(ctx: DocContext, data: any) {
   await drawRowsSection(ctx, "Majeur protégé", [
     { label: "Nom", value: toValue(mp.nom) },
     { label: "Prénom", value: toValue(mp.prenom) },
-    { label: "Date de naissance", value: toValue(mp.dateNaissance) },
+    { label: "Date de naissance", value: toValue(formatDateFR(mp.dateNaissance)) },
     { label: "Lieu de naissance", value: toValue(mp.lieuNaissance) },
     { label: "Nationalité", value: toValue(mp.nationalite) },
     { label: "Adresse", value: toValue(mp.adresse) },

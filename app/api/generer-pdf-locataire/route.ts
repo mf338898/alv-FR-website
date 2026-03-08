@@ -35,6 +35,22 @@ function buildLocataireSubject(locataires: Partial<Locataire>[] | undefined) {
   return `Nouveau formulaire locataire - ${formatted.join(" / ")}`
 }
 
+function collectCcEmails(formData: AppFormData): string[] {
+  const emails = new Set<string>()
+
+  for (const locataire of formData.locataires || []) {
+    const email = (locataire?.email || "").trim()
+    if (email) emails.add(email)
+  }
+
+  for (const garant of formData.garanties?.garants || []) {
+    const email = (garant?.email || "").trim()
+    if (email) emails.add(email)
+  }
+
+  return Array.from(emails)
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -119,9 +135,10 @@ export async function POST(request: Request) {
     let mailOk = false
     try {
       const subject = buildLocataireSubject(formData.locataires)
+      const ccEmails = collectCcEmails(formData)
       mailOk = await sendMail({
         to: process.env.RECIPIENT_EMAIL || 'foveau16@gmail.com',
-        cc: formData.locataires[0]?.email || undefined, // Copie à l'utilisateur
+        cc: ccEmails.length ? ccEmails : undefined,
         subject,
         html: emailHTML,
         attachments: attachments

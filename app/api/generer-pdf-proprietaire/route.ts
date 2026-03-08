@@ -10,6 +10,16 @@ import {
 
 const safe = (v?: string | null) => (v && v.trim() ? v.trim() : "-")
 
+function formatDateFR(input?: string | null) {
+  if (!input || !input.trim()) return "-"
+  const s = input.trim()
+  const dmy = s.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{4})$/)
+  if (dmy) return `${dmy[1].padStart(2, "0")}/${dmy[2].padStart(2, "0")}/${dmy[3]}`
+  const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`
+  return s
+}
+
 function formatCivilitePrefix(civilite?: string) {
   const normalized = civilite?.trim().toLowerCase()
   if (normalized === "monsieur") return "M."
@@ -139,7 +149,7 @@ function formatPersonInfo(p: any, index?: number): string {
   if (p.email) info.push(`<strong>Email :</strong> ${p.email}`)
   if (p.telephone) info.push(`<strong>Téléphone :</strong> ${p.telephone}`)
   if (p.adresse) info.push(`<strong>Adresse :</strong> ${p.adresse}`)
-  if (p.dateNaissance) info.push(`<strong>Date de naissance :</strong> ${p.dateNaissance}`)
+  if (p.dateNaissance) info.push(`<strong>Date de naissance :</strong> ${formatDateFR(p.dateNaissance)}`)
   if (p.lieuNaissance) info.push(`<strong>Lieu de naissance :</strong> ${p.lieuNaissance}`)
   if (p.nationalite) info.push(`<strong>Nationalité :</strong> ${p.nationalite}`)
   if (p.situationMatrimoniale) info.push(`<strong>Situation matrimoniale :</strong> ${p.situationMatrimoniale}`)
@@ -250,7 +260,7 @@ function buildEmailHTML(data: any) {
       <h2 style="color:#0072BC;font-size:16px;margin:0 0 8px;">Mineur</h2>
       <div style="margin-bottom:12px;padding:8px;background:#f8fafc;border-radius:4px;">
         <strong>Nom :</strong> ${safe(m.nom)} ${safe(m.prenom)}<br />
-        <strong>Naissance :</strong> ${safe(m.dateNaissance)} à ${safe(m.lieuNaissance)}<br />
+        <strong>Naissance :</strong> ${safe(formatDateFR(m.dateNaissance))} à ${safe(m.lieuNaissance)}<br />
         <strong>Nationalité :</strong> ${safe(m.nationalite)}<br />
         <strong>Adresse :</strong> ${safe(m.adresse)}<br />
         <strong>Autorité :</strong> ${safe(m.autorite)}
@@ -265,7 +275,7 @@ function buildEmailHTML(data: any) {
       <h2 style="color:#0072BC;font-size:16px;margin:0 0 8px;">Majeur protégé</h2>
       <div style="margin-bottom:12px;padding:8px;background:#f8fafc;border-radius:4px;">
         <strong>Nom :</strong> ${safe(mp.nom)} ${safe(mp.prenom)}<br />
-        <strong>Naissance :</strong> ${safe(mp.dateNaissance)} à ${safe(mp.lieuNaissance)}<br />
+        <strong>Naissance :</strong> ${safe(formatDateFR(mp.dateNaissance))} à ${safe(mp.lieuNaissance)}<br />
         <strong>Mesure :</strong> ${safe(mp.mesure)} (${safe(mp.mesureDetails)})<br />
         <strong>Représentant :</strong> ${safe(mp.representantPrenom)} ${safe(mp.representantNom)} (${safe(mp.representantQualite)})<br />
         <strong>Téléphone :</strong> ${safe(mp.telephone)}<br />
@@ -325,7 +335,7 @@ function formatPersonInfoText(p: any, index?: number): string {
   if (p.email) info.push(`Email : ${p.email}`)
   if (p.telephone) info.push(`Téléphone : ${p.telephone}`)
   if (p.adresse) info.push(`Adresse : ${p.adresse}`)
-  if (p.dateNaissance) info.push(`Date de naissance : ${p.dateNaissance}`)
+  if (p.dateNaissance) info.push(`Date de naissance : ${formatDateFR(p.dateNaissance)}`)
   if (p.lieuNaissance) info.push(`Lieu de naissance : ${p.lieuNaissance}`)
   if (p.nationalite) info.push(`Nationalité : ${p.nationalite}`)
   if (p.situationMatrimoniale) info.push(`Situation matrimoniale : ${p.situationMatrimoniale}`)
@@ -442,7 +452,7 @@ function buildEmailText(data: any) {
     lines.push(
       [
         `Nom : ${safe(m.nom)} ${safe(m.prenom)}`,
-        `Naissance : ${safe(m.dateNaissance)} à ${safe(m.lieuNaissance)}`,
+        `Naissance : ${safe(formatDateFR(m.dateNaissance))} à ${safe(m.lieuNaissance)}`,
         `Nationalité : ${safe(m.nationalite)}`,
         `Adresse : ${safe(m.adresse)}`,
         `Autorité : ${safe(m.autorite)}`,
@@ -457,7 +467,7 @@ function buildEmailText(data: any) {
     lines.push(
       [
         `Nom : ${safe(mp.nom)} ${safe(mp.prenom)}`,
-        `Naissance : ${safe(mp.dateNaissance)} à ${safe(mp.lieuNaissance)}`,
+        `Naissance : ${safe(formatDateFR(mp.dateNaissance))} à ${safe(mp.lieuNaissance)}`,
         `Mesure : ${safe(mp.mesure)} (${safe(mp.mesureDetails)})`,
         `Représentant : ${safe(mp.representantPrenom)} ${safe(mp.representantNom)} (${safe(mp.representantQualite)})`,
         `Téléphone : ${safe(mp.telephone)}`,

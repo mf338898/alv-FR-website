@@ -37,12 +37,39 @@ const personalFields = [
   { key: 'lieuNaissance', label: 'Lieu de naissance', type: 'text' as const, placeholder: 'Ex: 33000 Bordeaux (CP + ville)', autoComplete: 'bday-country', communeAutocomplete: true }
 ]
 
-const professionalFields = [
-  { key: 'profession', label: 'Profession', type: 'text' as const, placeholder: 'Entrer la profession' },
-  { key: 'employeurNom', label: 'Nom de l\'employeur', type: 'text' as const, placeholder: 'Entrer le nom de l\'employeur' },
-  { key: 'dateEmbauche', label: 'Date d\'embauche', type: 'date' as const },
-  { key: 'typeContrat', label: 'Type de contrat', type: 'select' as const, options: ['CDI', 'CDD', 'Intérim', 'Stage', 'Alternance', 'Libéral', 'Auto-entrepreneur', 'Retraité(e)', 'Chômeur/Chômeuse'] }
+const SITUATION_PROFESSIONNELLE_OPTIONS = [
+  "CDI",
+  "CDD",
+  "Fonctionnaire",
+  "Alternance",
+  "Stage",
+  "Indépendant / freelance / auto-entrepreneur",
+  "Intermittent du spectacle",
+  "Retraité",
+  "Demandeur d'emploi",
+  "Étudiant",
+  "Sans activité professionnelle",
+  "Parent au foyer",
+  "Contrat aidé / insertion",
+  "Autre",
 ]
+
+const SITUATIONS_AVEC_EMPLOYEUR = new Set([
+  "CDI",
+  "CDD",
+  "Fonctionnaire",
+  "Alternance",
+  "Stage",
+  "Contrat aidé / insertion",
+])
+const SITUATIONS_INDEPENDANTES = new Set([
+  "Indépendant / freelance / auto-entrepreneur",
+  "Intermittent du spectacle",
+])
+const SITUATIONS_SANS_ACTIVITE = new Set([
+  "Sans activité professionnelle",
+  "Parent au foyer",
+])
 
 const locataireConcerneFields = [
   { key: 'locataireConcerneNom', label: 'Nom', type: 'text' as const, placeholder: 'Nom du locataire' },
@@ -69,10 +96,14 @@ export function GarantCard({
   const REVENU_KEYS = [
     "salaireNet",
     "indemnitesChomage",
+    "pensionRetraite",
+    "pensionReversion",
+    "pensionAlimentaire",
     "aahAllocationsHandicap",
     "rsa",
     "pension",
     "revenusAutoEntrepreneur",
+    "autreRevenu",
     "aidesAuLogement",
   ] as const
 
@@ -81,24 +112,66 @@ export function GarantCard({
 
   const revenusOptions = [
     { key: "indemnitesChomage", label: "Indemnités chômage" },
-    { key: "aahAllocationsHandicap", label: "AAH / Allocations handicap" },
+    { key: "pensionRetraite", label: "Pension de retraite" },
+    { key: "pensionReversion", label: "Pension de réversion" },
+    { key: "pensionAlimentaire", label: "Pension alimentaire" },
+    { key: "aahAllocationsHandicap", label: "AAH / allocations handicap" },
     { key: "rsa", label: "RSA" },
-    { key: "pension", label: "Pension (retraite, pension alimentaire…)" },
-    { key: "revenusAutoEntrepreneur", label: "Revenus auto-entrepreneur / indépendant" },
-    { key: "aidesAuLogement", label: "Aides au logement (APL estimées si connues)" }
+    { key: "aidesAuLogement", label: "Aides au logement (APL estimées si connues)" },
+    { key: "revenusAutoEntrepreneur", label: "Revenus indépendant / auto-entrepreneur complémentaires" },
+    { key: "autreRevenu", label: "Autre revenu" },
   ]
   const allRevenuTypes = [
-    { key: "salaireNet", label: "Salaire net" },
+    { key: "salaireNet", label: "Revenu principal mensuel" },
     ...revenusOptions,
   ]
   const [revenuPrincipalType, setRevenuPrincipalType] = useState<string>("salaireNet")
   const [revenusSupp, setRevenusSupp] = useState<string[]>([])
+  const selectedSituation = garant.typeContrat || ""
+  const isSituationSalariee = SITUATIONS_AVEC_EMPLOYEUR.has(selectedSituation)
+  const isSituationIndependante = SITUATIONS_INDEPENDANTES.has(selectedSituation)
+  const isSituationSansActivite = SITUATIONS_SANS_ACTIVITE.has(selectedSituation)
+  const showEmployerFields = isSituationSalariee
+  const showIndependentActivityFields = isSituationIndependante
+  const showProfessionField = !isSituationSansActivite
+  const professionalFields = [
+    {
+      key: "typeContrat",
+      label: "Situation professionnelle",
+      type: "select" as const,
+      options: SITUATION_PROFESSIONNELLE_OPTIONS,
+    },
+    ...(showProfessionField
+      ? [{ key: "profession", label: "Profession / activité", type: "text" as const, placeholder: "Entrer la profession / activité" }]
+      : []),
+    ...(showEmployerFields
+      ? [
+          { key: "employeurNom", label: "Nom de l'employeur", type: "text" as const, placeholder: "Entrer le nom de l'employeur" },
+          { key: "employeurAdresse", label: "Adresse employeur", type: "text" as const, placeholder: "Entrer l'adresse employeur", addressAutocomplete: true },
+          { key: "employeurTelephone", label: "Téléphone employeur", type: "text" as const, placeholder: "Entrer le téléphone employeur" },
+          { key: "dateEmbauche", label: "Date d'embauche", type: "date" as const },
+        ]
+      : showIndependentActivityFields
+        ? [
+            { key: "employeurNom", label: "Entreprise / activité", type: "text" as const, placeholder: "Nom de l'activité" },
+            { key: "employeurAdresse", label: "Adresse activité", type: "text" as const, placeholder: "Adresse de l'activité", addressAutocomplete: true },
+            { key: "employeurTelephone", label: "Téléphone activité", type: "text" as const, placeholder: "Téléphone de l'activité" },
+            { key: "dateDebutActivite", label: "Date de début d'activité", type: "date" as const },
+          ]
+      : []),
+  ]
+  const getRevenuValue = (key: string) => {
+    if (key === "pensionRetraite") {
+      return (garant.pensionRetraite || garant.pension || "") as string
+    }
+    return (garant[key as keyof Locataire] as string) || ""
+  }
 
   useEffect(() => {
     const init = revenusOptions
       .filter((opt) => {
         if (opt.key === revenuPrincipalType) return false
-        const val = garant[opt.key as keyof Locataire]
+        const val = getRevenuValue(opt.key)
         return typeof val === "string" && val.trim() !== ""
       })
       .map((opt) => opt.key)
@@ -188,11 +261,12 @@ export function GarantCard({
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
                 >
                   <Trash2 className="h-4 w-4" />
+                  Supprimer
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
@@ -243,6 +317,11 @@ export function GarantCard({
           isFieldMissing={isFieldMissing}
           fieldPrefix={`garant_${garantIndex}_`}
         />
+        {!showEmployerFields && !showIndependentActivityFields && (
+          <p className="text-xs text-slate-500 -mt-2">
+            Les informations employeur s'affichent uniquement pour les situations professionnelles salariees.
+          </p>
+        )}
 
         <div
           id={`field-garant_${garantIndex}_revenusMensuels`}
@@ -306,7 +385,7 @@ export function GarantCard({
 
             <div className="space-y-3">
               {revenusSupp.map((key, index) => {
-                const amount = (garant[key as keyof Locataire] as string) || ""
+                const amount = getRevenuValue(key)
                 return (
                   <div key={`${key}-${index}`} className="rounded-lg border border-slate-200 bg-white p-3 flex flex-col sm:flex-row sm:items-center gap-3">
                     <Select

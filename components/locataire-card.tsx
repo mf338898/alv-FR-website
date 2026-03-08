@@ -24,6 +24,40 @@ interface LocataireCardProps {
   showValidationErrors?: boolean
 }
 
+const SITUATION_PROFESSIONNELLE_OPTIONS = [
+  "CDI",
+  "CDD",
+  "Fonctionnaire",
+  "Alternance",
+  "Stage",
+  "Indépendant / freelance / auto-entrepreneur",
+  "Intermittent du spectacle",
+  "Retraité",
+  "Demandeur d'emploi",
+  "Étudiant",
+  "Sans activité professionnelle",
+  "Parent au foyer",
+  "Contrat aidé / insertion",
+  "Autre",
+]
+
+const SITUATIONS_AVEC_EMPLOYEUR = new Set([
+  "CDI",
+  "CDD",
+  "Fonctionnaire",
+  "Alternance",
+  "Stage",
+  "Contrat aidé / insertion",
+])
+const SITUATIONS_INDEPENDANTES = new Set([
+  "Indépendant / freelance / auto-entrepreneur",
+  "Intermittent du spectacle",
+])
+const SITUATIONS_SANS_ACTIVITE = new Set([
+  "Sans activité professionnelle",
+  "Parent au foyer",
+])
+
 export function LocataireCard({
   locataire,
   locataireIndex,
@@ -40,6 +74,7 @@ export function LocataireCard({
     "nom",
     "prenom",
     "civilite",
+    "situationConjugale",
     "dateNaissance",
     "lieuNaissance",
     "adresseActuelle",
@@ -74,31 +109,63 @@ export function LocataireCard({
     { key: "email", label: "Email", type: "email" as const, autoComplete: "email" }
   ]
 
+  const selectedSituation = locataire.typeContrat || ""
+  const isSituationSalariee = SITUATIONS_AVEC_EMPLOYEUR.has(selectedSituation)
+  const isSituationIndependante = SITUATIONS_INDEPENDANTES.has(selectedSituation)
+  const isSituationSansActivite = SITUATIONS_SANS_ACTIVITE.has(selectedSituation)
+  const showEmployerFields = isSituationSalariee
+  const showIndependentActivityFields = isSituationIndependante
+  const showProfessionField = !isSituationSansActivite
   // Champs pour la section Professionnel
   const professionnelFields = [
-    { key: "profession", label: "Profession", type: "text" as const },
-    { key: "employeurNom", label: "Employeur", type: "text" as const },
-    { key: "employeurAdresse", label: "Adresse employeur", type: "text" as const, addressAutocomplete: true },
-    { key: "employeurTelephone", label: "Téléphone employeur", type: "text" as const },
-    { key: "dateEmbauche", label: "Date d'embauche", type: "date" as const },
-    { key: "typeContrat", label: "Type de contrat", type: "select" as const, options: ["CDI", "CDD", "Stage", "Alternance", "Freelance", "Retraité", "Chômage", "Étudiant", "Sans emploi / RSA", "Allocations handicap (AAH)", "Parent au foyer", "Auto-entrepreneur", "Intermittent du spectacle", "Fonctionnaire", "Contrat aidé / insertion (CUI, PEC…)"] }
+    {
+      key: "typeContrat",
+      label: "Situation professionnelle",
+      type: "select" as const,
+      options: SITUATION_PROFESSIONNELLE_OPTIONS,
+    },
+    ...(showProfessionField ? [{ key: "profession", label: "Profession / activité", type: "text" as const }] : []),
+    ...(showEmployerFields
+      ? [
+          { key: "employeurNom", label: "Employeur", type: "text" as const },
+          { key: "employeurAdresse", label: "Adresse employeur", type: "text" as const, addressAutocomplete: true },
+          { key: "employeurTelephone", label: "Téléphone employeur", type: "text" as const },
+          { key: "dateEmbauche", label: "Date d'embauche", type: "date" as const },
+        ]
+      : showIndependentActivityFields
+        ? [
+            { key: "employeurNom", label: "Entreprise / activité", type: "text" as const },
+            { key: "employeurAdresse", label: "Adresse activité", type: "text" as const, addressAutocomplete: true },
+            { key: "employeurTelephone", label: "Téléphone activité", type: "text" as const },
+            { key: "dateDebutActivite", label: "Date de début d'activité", type: "date" as const },
+          ]
+      : []),
   ]
 
   const revenusOptions = [
     { key: "indemnitesChomage", label: "Indemnités chômage" },
-    { key: "aahAllocationsHandicap", label: "AAH / Allocations handicap" },
+    { key: "pensionRetraite", label: "Pension de retraite" },
+    { key: "pensionReversion", label: "Pension de réversion" },
+    { key: "pensionAlimentaire", label: "Pension alimentaire" },
+    { key: "aahAllocationsHandicap", label: "AAH / allocations handicap" },
     { key: "rsa", label: "RSA" },
-    { key: "pension", label: "Pension (retraite, pension alimentaire…)" },
-    { key: "revenusAutoEntrepreneur", label: "Revenus auto-entrepreneur / indépendant" },
-    { key: "aidesAuLogement", label: "Aides au logement (APL estimées si connues)" }
+    { key: "aidesAuLogement", label: "Aides au logement (APL estimées si connues)" },
+    { key: "revenusAutoEntrepreneur", label: "Revenus indépendant / auto-entrepreneur complémentaires" },
+    { key: "autreRevenu", label: "Autre revenu" },
   ]
 
   const [revenusSupp, setRevenusSupp] = useState<string[]>([])
+  const getRevenuValue = (key: string) => {
+    if (key === "pensionRetraite") {
+      return (locataire.pensionRetraite || locataire.pension || "") as string
+    }
+    return (locataire[key as keyof Locataire] as string) || ""
+  }
 
   useEffect(() => {
     const init = revenusOptions
       .filter((opt) => {
-        const val = locataire[opt.key as keyof Locataire]
+        const val = getRevenuValue(opt.key)
         return typeof val === "string" && val.trim() !== ""
       })
       .map((opt) => opt.key)
@@ -166,11 +233,12 @@ export function LocataireCard({
               <AlertDialog>
                 <AlertDialogTrigger asChild>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    className="gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
                   >
                     <Trash2 className="h-4 w-4" />
+                    Supprimer
                   </Button>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
@@ -222,6 +290,11 @@ export function LocataireCard({
           isFieldMissing={isFieldMissing}
           fieldPrefix={`locataire_${locataireIndex}_`}
         />
+        {!showEmployerFields && !showIndependentActivityFields && (
+          <p className="text-xs text-slate-500 -mt-2">
+            Les informations employeur s'affichent uniquement pour les situations professionnelles salariees.
+          </p>
+        )}
 
         <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 sm:p-6 space-y-4">
           <div>
@@ -230,7 +303,7 @@ export function LocataireCard({
           </div>
 
           <FormField
-            label="Salaire net"
+            label="Revenu principal mensuel"
             value={locataire.salaireNet || ""}
             onChange={(val) => onFieldChange("salaireNet", val)}
             onEdit={() => onFieldEdit(`locataire_${locataireIndex}_salaireNet`)}
@@ -258,7 +331,7 @@ export function LocataireCard({
             <div className="space-y-3">
               {revenusSupp.map((key, index) => {
                 const current = revenusOptions.find((opt) => opt.key === key)
-                const amount = (locataire[key as keyof Locataire] as string) || ""
+                const amount = getRevenuValue(key)
                 return (
                   <div key={`${key}-${index}`} className="rounded-lg border border-slate-200 bg-white p-3 flex flex-col sm:flex-row sm:items-center gap-3">
                     <Select

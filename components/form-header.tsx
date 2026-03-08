@@ -20,14 +20,14 @@ export function FormHeader({ title, subtitle, showBackButton = true, backHref = 
             <div className="flex items-center space-x-4">
               <Image
                 src="/images/logo-alv-2.jpg"
-                alt="Logo ALV Pleyben Immobilier"
+                alt="Logo ALV Immobilier Pleyben"
                 width={150}
                 height={50}
                 className="h-10 w-auto"
                 priority
               />
               <div className="hidden sm:block">
-                <h2 className="text-lg font-bold text-slate-800">ALV Pleyben Immobilier</h2>
+                <h2 className="text-lg font-bold text-slate-800">ALV Immobilier Pleyben</h2>
               </div>
             </div>
             

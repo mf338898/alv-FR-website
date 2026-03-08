@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,7 +18,13 @@ import {
   Shield,
   CheckCircle,
   Sparkles,
-  Info
+  Info,
+  Mail,
+  ChevronDown,
+  ChevronUp,
+  X,
+  Trash2,
+  FlaskConical
 } from "lucide-react"
 import type { AppFormData, Locataire, CriteresRecherche, Garanties } from "@/lib/types"
 import { createTestCriteres, createTestGaranties, createTestLocataire } from "@/lib/test-data"
@@ -27,6 +34,32 @@ import { LocataireCard } from "@/components/locataire-card"
 import { CriteresRechercheCard } from "@/components/criteres-recherche-card"
 import { GarantiesCard } from "@/components/garanties-card"
 import ErrorMessage from "@/components/error-message"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+
+const LOCATAIRE_MAILTO_SUBJECT = encodeURIComponent(
+  "Envoi de pièces justificatives - Dossier locataire"
+)
+
+const LOCATAIRE_MAILTO_BODY = encodeURIComponent(
+  "Bonjour,\n\nVeuillez trouver ci-joint les pièces justificatives demandées pour mon dossier locataire.\n\nNom :\nPrénom :\nBien concerné (si connu) :\n\nCordialement,"
+)
+
+const LOCATAIRE_MAILTO_HREF = `mailto:contact@alvimmobilier.bzh?subject=${LOCATAIRE_MAILTO_SUBJECT}&body=${LOCATAIRE_MAILTO_BODY}`
 
 // Créer un locataire vide
 const createEmptyLocataire = (): Locataire => ({
@@ -57,7 +90,11 @@ const createEmptyLocataire = (): Locataire => ({
   aahAllocationsHandicap: "",
   rsa: "",
   pension: "",
+  pensionRetraite: "",
+  pensionReversion: "",
+  pensionAlimentaire: "",
   revenusAutoEntrepreneur: "",
+  autreRevenu: "",
   aidesAuLogement: "",
   revenusAdditionnels: [],
   dateFinContrat: "",
@@ -115,6 +152,10 @@ export default function LocataireFormPage() {
   const [bienConcerne, setBienConcerne] = useState<string>("")
   const [veutRemplirRecherche, setVeutRemplirRecherche] = useState<string>("non")
   
+  const [showPiecesJustificatives, setShowPiecesJustificatives] = useState(false)
+  const [showTestConfirmDialog, setShowTestConfirmDialog] = useState(false)
+  const [showRemoveLocataireDialog, setShowRemoveLocataireDialog] = useState(false)
+  const [indexToRemoveLocataire, setIndexToRemoveLocataire] = useState<number>(0)
   const [editingField, setEditingField] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -125,6 +166,7 @@ export default function LocataireFormPage() {
     "nom",
     "prenom",
     "civilite",
+    "situationConjugale",
     "dateNaissance",
     "lieuNaissance",
     "adresseActuelle",
@@ -314,7 +356,7 @@ export default function LocataireFormPage() {
     )
     setLocataires(sampleLocataires)
     setNombreEnfantsFoyer(1)
-    setBienConcerne("Appartement témoin - 3 pièces - Paris (données fictives)")
+    setBienConcerne("Appartement témoin - 3 pièces - Paris")
     setCriteresRecherche(createTestCriteres())
     setGaranties(createTestGaranties())
     setVeutRemplirRecherche("oui")
@@ -322,7 +364,7 @@ export default function LocataireFormPage() {
     setShowValidationErrors(false)
     setErrorMessage(null)
     setAutofillClickIndex(nombreLocataires)
-    toast.success(`Champs préremplis avec ${nombreLocataires} locataire${nombreLocataires > 1 ? 's' : ''} de test.`)
+    toast.success(`Champs préremplis avec ${nombreLocataires} locataire${nombreLocataires > 1 ? 's' : ''}.`)
   }
 
   const isBienConcerneMissing = showValidationErrors && (!bienConcerne || bienConcerne.trim() === "")
@@ -333,6 +375,14 @@ export default function LocataireFormPage() {
         show={isSubmitting || isSuccess}
         isSuccess={isSuccess}
         onClose={() => router.push('/')}
+        successFooter={
+          <Link
+            href="/pieces-justificatives"
+            className="inline-flex items-center rounded-md border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-50"
+          >
+            Pièces justificatives à prévoir
+          </Link>
+        }
       />
 
       {/* Message d'erreur */}
@@ -342,6 +392,38 @@ export default function LocataireFormPage() {
           onClose={() => setErrorMessage(null)}
         />
       )}
+
+      {/* Dialog confirmation suppression locataire */}
+      <AlertDialog open={showRemoveLocataireDialog} onOpenChange={setShowRemoveLocataireDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer le locataire</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer ce locataire ? Cette action est irréversible.
+              {locataires[indexToRemoveLocataire] && (
+                <>
+                  <br />
+                  <strong>
+                    Locataire {indexToRemoveLocataire + 1} : {locataires[indexToRemoveLocataire].prenom} {locataires[indexToRemoveLocataire].nom}
+                  </strong>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                removeLocataire(indexToRemoveLocataire)
+                setShowRemoveLocataireDialog(false)
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Header */}
       <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 pt-safe shadow-sm">
@@ -364,16 +446,32 @@ export default function LocataireFormPage() {
                   <FadeInText text="Fiche de renseignements locataire" />
                 </h1>
                 {TEST_FILL_ENABLED && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleAutofill}
-                    className="h-8 px-2.5 text-xs bg-purple-50 text-purple-700 border border-purple-200 shadow-none hover:bg-purple-100"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    Remplir en test
-                  </Button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setShowTestConfirmDialog(true)}
+                      title="Préremplir"
+                      className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded border-0 bg-transparent cursor-pointer"
+                    >
+                      <FlaskConical className="h-3 w-3" />
+                    </button>
+                    <AlertDialog open={showTestConfirmDialog} onOpenChange={setShowTestConfirmDialog}>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Préremplir le formulaire</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Les champs du formulaire seront préremplis. Cette action remplace tout le contenu actuel.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleAutofill}>
+                            Préremplir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </>
                 )}
               </div>
             </div>
@@ -401,10 +499,6 @@ export default function LocataireFormPage() {
             <p className="text-sm sm:text-base text-white/80">
               Renseignez vos informations de locataire dans un formulaire guidé. Temps estimé : 5 à 10 minutes – vous recevrez un récapitulatif par email.
             </p>
-            <div className="flex items-center gap-2 text-sm text-white/80">
-              <Info className="h-4 w-4" />
-              <span>Données fictives générées automatiquement pour vérifier l’envoi des PDF.</span>
-            </div>
           </CardHeader>
           <CardContent className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
             {[
@@ -424,6 +518,97 @@ export default function LocataireFormPage() {
               </div>
             ))}
           </CardContent>
+        </Card>
+        </Reveal>
+
+        {/* Pièces justificatives à prévoir - bouton déroulant */}
+        <Reveal delay={40}>
+        <Card className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowPiecesJustificatives(!showPiecesJustificatives)}
+            className="w-full px-4 sm:px-6 py-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/80 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-sky-100 text-sky-700">
+                <Info className="h-5 w-5" />
+              </div>
+              <span className="font-semibold text-slate-900">
+                Pièces justificatives à prévoir après la visite
+              </span>
+            </div>
+            {showPiecesJustificatives ? (
+              <ChevronUp className="h-5 w-5 text-slate-500 flex-shrink-0" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-slate-500 flex-shrink-0" />
+            )}
+          </button>
+          {showPiecesJustificatives && (
+            <CardContent className="border-t border-slate-200 px-4 sm:px-6 py-4 space-y-4 text-sm text-slate-700">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-slate-600">
+                  La fiche de renseignements vous permet de préparer votre dossier locataire.
+                  Si vous confirmez votre intérêt après la visite, nous vous demanderons ensuite les pièces justificatives ci-dessous afin de transmettre votre dossier au propriétaire.
+                </p>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowPiecesJustificatives(false)}
+                  className="flex-shrink-0 rounded-full h-8 w-8 text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+                  aria-label="Fermer"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <p className="font-medium text-slate-900">Justificatif de domicile</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>3 dernières quittances de loyer si vous êtes locataire</li>
+                <li>ou attestation d’hébergement si vous êtes hébergé(e)</li>
+                <li>ou dernière taxe foncière si vous êtes propriétaire</li>
+              </ul>
+            </div>
+
+            <div className="space-y-1">
+              <p className="font-medium text-slate-900">Justificatifs de ressources</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>dernier avis d’imposition</li>
+                <li>ou les 2 derniers avis d’imposition en cas de location « loi Pinel »</li>
+              </ul>
+            </div>
+
+            <div className="space-y-1">
+              <p className="font-medium text-slate-900">Justificatifs d’activité professionnelle</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>contrat de travail</li>
+                    <li>3 derniers bulletins de salaire</li>
+                    <li>ou 2 derniers bilans pour les travailleurs indépendants</li>
+                  </ul>
+                </div>
+                <div className="space-y-1">
+                  <p className="font-medium text-slate-900">Garantie</p>
+                  <ul className="list-disc pl-5 space-y-1">
+                    <li>le cas échéant, certificat Visale</li>
+                    <li>pour tout cautionnaire éventuel : les mêmes pièces justificatives devront être transmises</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="pt-2 flex justify-end">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-2 border-purple-200 text-purple-700 hover:bg-purple-50"
+                >
+                  <a href={LOCATAIRE_MAILTO_HREF}>
+                    <Mail className="h-4 w-4" />
+                    Envoyer mes pièces
+                  </a>
+                </Button>
+              </div>
+            </CardContent>
+          )}
         </Card>
         </Reveal>
 
@@ -453,7 +638,11 @@ export default function LocataireFormPage() {
                 <textarea
                   value={bienConcerne}
                   onChange={(e) => setBienConcerne(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none bg-white"
+                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 resize-none bg-white ${
+                    isBienConcerneMissing
+                      ? "border-rose-300 focus:ring-rose-500"
+                      : "border-slate-200 focus:ring-purple-500"
+                  }`}
                   placeholder="Ex: Appartement T3 - 75m² - Paris 11ème"
                   rows={3}
                 />
@@ -488,7 +677,7 @@ export default function LocataireFormPage() {
                 <p className="text-sm text-slate-600">Identité, situation et revenus des personnes qui vivront dans le logement.</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <div className="hidden sm:flex items-center gap-2 text-xs text-slate-600">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full" />
                 <span>Badges \"Rempli\" pour suivre l'avancement</span>
@@ -502,6 +691,35 @@ export default function LocataireFormPage() {
                 <Plus className="h-4 w-4" />
                 Ajouter un locataire
               </Button>
+              {locataires.length > 1 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Supprimer un locataire
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {locataires.map((locataire, index) => (
+                      <DropdownMenuItem
+                        key={index}
+                        onSelect={(e) => {
+                          e.preventDefault()
+                          setIndexToRemoveLocataire(index)
+                          setShowRemoveLocataireDialog(true)
+                        }}
+                        className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                      >
+                        Locataire {index + 1} : {locataire.prenom || "—"} {locataire.nom || "—"}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
           </Reveal>
@@ -527,6 +745,28 @@ export default function LocataireFormPage() {
             })}
           </div>
         </div>
+
+        {/* Informations complémentaires (toujours visibles) */}
+        <Card className="border-0 shadow-lg bg-white">
+          <CardHeader className="border-b border-slate-200">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <CardTitle className="text-lg font-semibold text-slate-900">Informations complémentaires</CardTitle>
+                <p className="text-sm text-slate-600">Facultatif — vous pouvez préciser ici votre situation, l’origine de certains revenus, ou toute information utile à la bonne compréhension de votre dossier. Plus les informations sont claires, plus l’étude du dossier est facilitée.</p>
+              </div>
+              <Badge variant="outline" className="border-slate-200 text-slate-700 bg-slate-50">Facultatif</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="p-6">
+            <textarea
+              value={criteresRecherche.informationsComplementaires || ""}
+              onChange={(e) => setCriteresRecherche((prev) => ({ ...prev, informationsComplementaires: e.target.value }))}
+              className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none bg-white"
+              placeholder="Ex. : précisions sur votre situation, pension de réversion, aides perçues, revenus variables, ou toute information utile…"
+              rows={4}
+            />
+          </CardContent>
+        </Card>
 
         {/* Critères de recherche (facultatif) */}
         <div className="space-y-4">
@@ -597,12 +837,12 @@ export default function LocataireFormPage() {
               <div className="bg-rose-50 border border-rose-200 rounded-lg px-4 py-3 flex items-center gap-2">
                 <Info className="h-5 w-5 text-rose-600" />
                 <span className="text-rose-800 text-sm">
-                  Merci de remplir les champs obligatoires : Bien concerne, Identite et Type de contrat.
+                  Merci de remplir les champs obligatoires : Bien concerne, Identite et situation professionnelle.
                 </span>
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
               <Button
                 onClick={addLocataire}
                 variant="outline"
@@ -612,6 +852,35 @@ export default function LocataireFormPage() {
                 <Plus className="h-5 w-5" />
                 Ajouter un locataire
               </Button>
+              {locataires.length > 1 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="flex items-center justify-center gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                      Supprimer un locataire
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-56">
+                    {locataires.map((locataire, index) => (
+                      <DropdownMenuItem
+                        key={index}
+                        onSelect={(e) => {
+                          e.preventDefault()
+                          setIndexToRemoveLocataire(index)
+                          setShowRemoveLocataireDialog(true)
+                        }}
+                        className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                      >
+                        Locataire {index + 1} : {locataire.prenom || "—"} {locataire.nom || "—"}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               <Button
                 onClick={handleSubmit}
                 size="lg"
@@ -627,6 +896,11 @@ export default function LocataireFormPage() {
               <Info className="h-4 w-4 text-slate-500" />
               <span>Les données sont sécurisées et utilisées uniquement pour votre dossier locataire.</span>
             </div>
+            <Button asChild variant="ghost" size="sm" className="text-slate-500 hover:text-slate-700">
+              <Link href="/pieces-justificatives">
+                Pièces justificatives à prévoir
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </div>

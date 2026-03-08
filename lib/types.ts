@@ -33,7 +33,11 @@ export interface Locataire {
   aahAllocationsHandicap: string
   rsa: string
   pension: string
+  pensionRetraite: string
+  pensionReversion: string
+  pensionAlimentaire: string
   revenusAutoEntrepreneur: string
+  autreRevenu: string
   aidesAuLogement: string
   revenusAdditionnels: RevenuAdditionnel[]
   dateFinContrat: string

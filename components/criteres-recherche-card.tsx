@@ -41,16 +41,14 @@ export function CriteresRechercheCard({
     { key: "dateEmmenagement", label: "Date d'emménagement souhaitée", type: "date" as const },
     { key: "preavisADeposer", label: "Préavis à déposer", type: "select" as const, options: ["1 mois", "2 mois", "3 mois", "Aucun"] },
     { key: "raisonDemenagement", label: "Raison du déménagement", type: "text" as const },
-    { key: "loyerMax", label: "Loyer maximum (€)", type: "number" as const, placeholder: "Budget max (location)" },
-    { key: "informationsComplementaires", label: "Informations complémentaires", type: "text" as const }
+    { key: "loyerMax", label: "Loyer maximum (€)", type: "number" as const, placeholder: "Budget max (location)" }
   ]
 
   const achatFields = [
     { key: "typeBienAchat", label: "Type de bien recherché (achat)", type: "select" as const, options: ["Maison", "Appartement", "Parking / box", "Terrain", "Local commercial"] },
     { key: "budgetAchat", label: "Budget max (achat)", type: "number" as const, placeholder: "Montant en €" },
     { key: "financementAchat", label: "Financement / apport (achat)", type: "text" as const, placeholder: "Prêt, apport, mix..." },
-    { key: "banqueConsultee", label: "Avez-vous vu votre banque ?", type: "select" as const, options: ["oui", "non"] },
-    { key: "informationsComplementaires", label: "Informations complémentaires", type: "text" as const }
+    { key: "banqueConsultee", label: "Avez-vous vu votre banque ?", type: "select" as const, options: ["oui", "non"] }
   ]
 
   return (

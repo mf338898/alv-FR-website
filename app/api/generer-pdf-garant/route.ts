@@ -5,6 +5,25 @@ import { generateGarantPdf, buildGarantPdfFilename } from "@/lib/pdf-garant-gene
 import { generateGarantEmailHTML, generateGarantEmailText } from "@/lib/email-templates"
 import type { GarantFormData } from "@/lib/types"
 
+function collectCcEmails(garants: any[] = [], cautionnes: any[] = []): string[] {
+  const emails = new Set<string>()
+
+  for (const garant of garants) {
+    const garantEmail = (garant?.email || "").trim()
+    if (garantEmail) emails.add(garantEmail)
+
+    const locataireEmail = (garant?.locataireConcerneEmail || "").trim()
+    if (locataireEmail) emails.add(locataireEmail)
+  }
+
+  for (const cautionne of cautionnes) {
+    const cautionneEmail = (cautionne?.email || "").trim()
+    if (cautionneEmail) emails.add(cautionneEmail)
+  }
+
+  return Array.from(emails)
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -38,9 +57,10 @@ export async function POST(request: Request) {
     // Envoyer l'email avec le PDF en pièce jointe
     let mailOk = false
     try {
+      const ccEmails = collectCcEmails(garants, cautionnes)
       mailOk = await sendMail({
         to: process.env.RECIPIENT_EMAIL || 'foveau16@gmail.com',
-        cc: garants[0]?.email || undefined, // Copie à l'utilisateur
+        cc: ccEmails.length ? ccEmails : undefined,
         subject: `Nouveau formulaire garant - ${garants[0]?.nom} ${garants[0]?.prenom}`,
         html: emailHTML,
         attachments: [{

@@ -204,6 +204,23 @@ type Row = {
   valueBelowLabel?: boolean // Option pour forcer la valeur sur la ligne suivante du label
 }
 
+const SITUATIONS_SALARIEES = new Set([
+  "CDI",
+  "CDD",
+  "Fonctionnaire",
+  "Alternance",
+  "Stage",
+  "Contrat aidé / insertion",
+])
+const SITUATIONS_INDEPENDANTES = new Set([
+  "Indépendant / freelance / auto-entrepreneur",
+  "Intermittent du spectacle",
+])
+const SITUATIONS_SANS_ACTIVITE = new Set([
+  "Sans activité professionnelle",
+  "Parent au foyer",
+])
+
 // "Sans emploi" precision handling
 function contractOrStatus(loc?: Locataire) {
   const base = (loc?.typeContrat || loc?.situationActuelle || "").trim()
@@ -270,28 +287,47 @@ function revenusAdditionnelsLines(list?: RevenuAdditionnel[]): RevenuFormatted[]
 
 function proRows(l?: Locataire): Row[] {
   const [empAddr1, empAddr2] = splitAddressLines(l?.employeurAdresse)
-  const empAddrValue = [pdfSafe(empAddr1), pdfSafe(empAddr2)]
-  
+  const situation = (l?.typeContrat || "").trim()
+  const isSalarie = SITUATIONS_SALARIEES.has(situation)
+  const isIndependent = SITUATIONS_INDEPENDANTES.has(situation)
+  const showProfession = !SITUATIONS_SANS_ACTIVITE.has(situation)
+  const hasEmployerInfo =
+    nonEmpty(l?.employeurNom) ||
+    nonEmpty(l?.employeurAdresse) ||
+    nonEmpty(l?.employeurTelephone) ||
+    nonEmpty(l?.dateEmbauche) ||
+    nonEmpty(l?.dateDebutActivite) ||
+    nonEmpty(l?.dateFinContrat)
+
   // Construire les lignes de revenus
   const revenusRows: Row[] = []
   
   if (nonEmpty(l?.salaireNet)) {
-    revenusRows.push({ label: "Salaire net", value: euro(l?.salaireNet), highlight: true, valueBelowLabel: true })
+    revenusRows.push({ label: "Revenu principal mensuel", value: euro(l?.salaireNet), highlight: true, valueBelowLabel: true })
   }
   if (nonEmpty(l?.indemnitesChomage)) {
     revenusRows.push({ label: "Indemnités chômage", value: euro(l?.indemnitesChomage), valueBelowLabel: true })
   }
+  if (nonEmpty((l as any)?.pensionRetraite) || nonEmpty(l?.pension)) {
+    revenusRows.push({ label: "Pension de retraite", value: euro((l as any)?.pensionRetraite || l?.pension), valueBelowLabel: true })
+  }
+  if (nonEmpty((l as any)?.pensionReversion)) {
+    revenusRows.push({ label: "Pension de réversion", value: euro((l as any)?.pensionReversion), valueBelowLabel: true })
+  }
+  if (nonEmpty((l as any)?.pensionAlimentaire)) {
+    revenusRows.push({ label: "Pension alimentaire", value: euro((l as any)?.pensionAlimentaire), valueBelowLabel: true })
+  }
   if (nonEmpty(l?.aahAllocationsHandicap)) {
-    revenusRows.push({ label: "AAH / Allocations handicap", value: euro(l?.aahAllocationsHandicap), valueBelowLabel: true })
+    revenusRows.push({ label: "AAH / allocations handicap", value: euro(l?.aahAllocationsHandicap), valueBelowLabel: true })
   }
   if (nonEmpty(l?.rsa)) {
     revenusRows.push({ label: "RSA", value: euro(l?.rsa), valueBelowLabel: true })
   }
-  if (nonEmpty(l?.pension)) {
-    revenusRows.push({ label: "Pension (retraite, pension alimentaire…)", value: euro(l?.pension), valueBelowLabel: true })
-  }
   if (nonEmpty(l?.revenusAutoEntrepreneur)) {
-    revenusRows.push({ label: "Revenus auto-entrepreneur / indépendant", value: euro(l?.revenusAutoEntrepreneur), valueBelowLabel: true })
+    revenusRows.push({ label: "Revenus indépendant / auto-entrepreneur complémentaires", value: euro(l?.revenusAutoEntrepreneur), valueBelowLabel: true })
+  }
+  if (nonEmpty((l as any)?.autreRevenu)) {
+    revenusRows.push({ label: "Autre revenu", value: euro((l as any)?.autreRevenu), valueBelowLabel: true })
   }
   if (nonEmpty(l?.aidesAuLogement)) {
     revenusRows.push({ label: "Aides au logement (APL estimées)", value: euro(l?.aidesAuLogement), valueBelowLabel: true })
@@ -302,14 +338,9 @@ function proRows(l?: Locataire): Row[] {
     revenusRows.push({ label: "Revenus mensuels", value: dash })
   }
   
-  return [
-    { label: "Type de contrat / statut", value: pdfSafe(contractOrStatus(l)), highlight: true }, // highlight pour le mettre en gras
-    { label: "Profession", value: pdfSafe(showOrDash(l?.profession)) },
-    { label: "Employeur (nom)", value: pdfSafe(showOrDash(l?.employeurNom)) },
-    { label: "Employeur (adresse)", value: empAddrValue },
-    { label: "Employeur (téléphone)", value: pdfSafe(showOrDash(l?.employeurTelephone)) },
-    { label: "Date d'embauche", value: pdfSafe(showOrDash(l?.dateEmbauche)) },
-    { label: "Date de fin de contrat", value: pdfSafe(showOrDash(l?.dateFinContrat)) },
+  const rows: Row[] = [
+    { label: "Situation professionnelle", value: pdfSafe(contractOrStatus(l)), highlight: true },
+    ...(showProfession ? [{ label: "Profession / activité", value: pdfSafe(showOrDash(l?.profession)) }] : []),
     ...revenusRows,
     { 
       label: "Revenus complémentaires", 
@@ -317,6 +348,28 @@ function proRows(l?: Locataire): Row[] {
       specialFormat: 'revenus' 
     },
   ]
+  if (isSalarie && hasEmployerInfo) {
+    const empAddrValue = [pdfSafe(empAddr1), pdfSafe(empAddr2)]
+    const insertAt = showProfession ? 2 : 1
+    rows.splice(insertAt, 0, { label: "Employeur (nom)", value: pdfSafe(showOrDash(l?.employeurNom)) })
+    rows.splice(insertAt + 1, 0, { label: "Employeur (adresse)", value: empAddrValue })
+    rows.splice(insertAt + 2, 0, { label: "Employeur (téléphone)", value: pdfSafe(showOrDash(l?.employeurTelephone)) })
+    rows.splice(insertAt + 3, 0, { label: "Date d'embauche", value: pdfSafe(showOrDash(l?.dateEmbauche)) })
+    if (nonEmpty(l?.dateFinContrat)) {
+      rows.splice(insertAt + 4, 0, { label: "Date de fin de contrat", value: pdfSafe(showOrDash(l?.dateFinContrat)) })
+    }
+  }
+  if (isIndependent && hasEmployerInfo) {
+    const activityAddrValue = [pdfSafe(empAddr1), pdfSafe(empAddr2)]
+    const insertAt = showProfession ? 2 : 1
+    rows.splice(insertAt, 0, { label: "Entreprise / activité", value: pdfSafe(showOrDash(l?.employeurNom)) })
+    rows.splice(insertAt + 1, 0, { label: "Adresse activité", value: activityAddrValue })
+    rows.splice(insertAt + 2, 0, { label: "Téléphone activité", value: pdfSafe(showOrDash(l?.employeurTelephone)) })
+    if (nonEmpty(l?.dateDebutActivite)) {
+      rows.splice(insertAt + 3, 0, { label: "Date de début d'activité", value: pdfSafe(showOrDash(l?.dateDebutActivite)) })
+    }
+  }
+  return rows
 }
 
 // Drawing primitives
@@ -465,6 +518,7 @@ type DocContext = {
   page: PDFPage
   y: number
   fonts: Fonts
+  pageNumber: number
   drawColumnHeadingsNext?: () => void // optional callback to draw column headers after a page break
 }
 
@@ -475,7 +529,8 @@ async function ensureSpace(ctx: DocContext, neededHeight: number) {
     drawFooter(ctx.page, ctx.fonts.reg)
     // new page
     const page = ctx.pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT])
-    const y = await drawHeader(page, ctx.pdf, ctx.fonts.bold, ctx.fonts.reg)
+    ctx.pageNumber += 1
+    const y = drawCompactHeader(page, ctx.fonts.bold, ctx.fonts.reg, ctx.pageNumber)
     ctx.page = page
     ctx.y = y - 6
     // redraw column headings if provided (when we are in a column section)
@@ -484,6 +539,34 @@ async function ensureSpace(ctx: DocContext, neededHeight: number) {
       ctx.drawColumnHeadingsNext = undefined // only once immediately after break
     }
   }
+}
+
+function drawCompactHeader(page: any, fontBold: any, fontReg: any, pageNumber: number) {
+  let y = PAGE_HEIGHT - MARGIN
+  page.drawText(pdfSafe("FICHE DE RENSEIGNEMENT LOCATAIRES"), {
+    x: MARGIN,
+    y,
+    size: 11,
+    font: fontBold,
+    color: PRIMARY,
+  })
+  const pageLabel = pdfSafe(`Page ${pageNumber}`)
+  const pageLabelWidth = fontReg.widthOfTextAtSize(pageLabel, 9)
+  page.drawText(pageLabel, {
+    x: PAGE_WIDTH - MARGIN - pageLabelWidth,
+    y,
+    size: 9,
+    font: fontReg,
+    color: TEXT_INFO,
+  })
+  y -= 8
+  page.drawLine({
+    start: { x: MARGIN, y },
+    end: { x: PAGE_WIDTH - MARGIN, y },
+    thickness: 1,
+    color: SEP_GRAY,
+  })
+  return y - 8
 }
 
 // Prepare wrapped lines and measure height per part for a row
@@ -617,12 +700,22 @@ async function drawTwoColumnsAlignedWithBreaks(ctx: DocContext, left?: Locataire
   const xLeft = MARGIN
   const xRight = MARGIN + colWidth + GUTTER
 
+  const rowsIdL = identityRows(left)
+  const rowsIdR = identityRows(right)
+  const firstIdL = rowsIdL[0] || { label: "", value: dash }
+  const firstIdR = rowsIdR[0] || { label: "", value: dash }
+  const firstIdHeight = Math.max(
+    prepareRowParts(firstIdL, firstIdL.highlight ? ctx.fonts.bold : ctx.fonts.reg, colWidth).totalHeight,
+    prepareRowParts(firstIdR, firstIdR.highlight ? ctx.fonts.bold : ctx.fonts.reg, colWidth).totalHeight
+  ) + 1
+
+  // Garder ensemble: intitulés locataires + titre section + première ligne identité
+  await ensureSpace(ctx, 18 + 28 + firstIdHeight)
+
   // Column headings
-  await ensureSpace(ctx, 18) // Réduit de 20 à 18
   drawColumnHeadingsInline(ctx, xLeft, right ? xRight : undefined, leftNumber, rightNumber)
 
   // Identité
-  await ensureSpace(ctx, 28) // Réduit de 32 à 28
   ctx.y = drawSectionHeader(ctx.page, "Identité", MARGIN, ctx.y, ctx.fonts.bold)
 
   const layout = {
@@ -632,9 +725,6 @@ async function drawTwoColumnsAlignedWithBreaks(ctx: DocContext, left?: Locataire
     xValueR: xRight + LABEL_WIDTH + VALUE_INDENT,
     colWidth,
   }
-
-  const rowsIdL = identityRows(left)
-  const rowsIdR = identityRows(right)
 
   for (let i = 0; i < Math.max(rowsIdL.length, rowsIdR.length); i++) {
     const rL = rowsIdL[i] || { label: rowsIdR[i]?.label || "", value: dash }
@@ -662,11 +752,17 @@ async function drawTwoColumnsAlignedWithBreaks(ctx: DocContext, left?: Locataire
   }
 
   // Situation professionnelle
-  await ensureSpace(ctx, 28) // Réduit de 32 à 28
-  ctx.y = drawSectionHeader(ctx.page, "Situation professionnelle", MARGIN, ctx.y, ctx.fonts.bold)
-
   const rowsProL = proRows(left)
   const rowsProR = proRows(right)
+  const firstProL = rowsProL[0] || { label: "", value: dash }
+  const firstProR = rowsProR[0] || { label: "", value: dash }
+  const firstProHeight = Math.max(
+    prepareRowParts(firstProL, firstProL.highlight ? ctx.fonts.bold : ctx.fonts.reg, colWidth).totalHeight,
+    prepareRowParts(firstProR, firstProR.highlight ? ctx.fonts.bold : ctx.fonts.reg, colWidth).totalHeight
+  ) + 1
+  // Eviter titre orphelin
+  await ensureSpace(ctx, 28 + firstProHeight)
+  ctx.y = drawSectionHeader(ctx.page, "Situation professionnelle", MARGIN, ctx.y, ctx.fonts.bold)
 
   for (let i = 0; i < Math.max(rowsProL.length, rowsProR.length); i++) {
     const rL = rowsProL[i] || { label: rowsProR[i]?.label || "", value: dash }
@@ -697,19 +793,25 @@ async function drawSingleCenteredColumnWithBreaks(ctx: DocContext, l?: Locataire
   const total = PAGE_WIDTH - 2 * MARGIN
   const colWidth = (total - GUTTER) / 2
   const xCenter = MARGIN + (total - colWidth) / 2
+  const rowsId = identityRows(l)
+  const rowsPro = proRows(l)
+  const firstId = rowsId[0] || { label: "", value: dash }
+  const firstPro = rowsPro[0] || { label: "", value: dash }
+  const firstIdHeight = prepareRowParts(firstId, firstId.highlight ? ctx.fonts.bold : ctx.fonts.reg, colWidth).totalHeight + 1
+  const firstProHeight = prepareRowParts(firstPro, firstPro.highlight ? ctx.fonts.bold : ctx.fonts.reg, colWidth).totalHeight + 1
 
+  // Garder ensemble: intitulé locataire + titre section + première ligne identité
+  await ensureSpace(ctx, 18 + 28 + firstIdHeight)
   // Heading
-  await ensureSpace(ctx, 18) // Réduit de 20 à 18
   ctx.page.drawText(pdfSafe(`Locataire ${locataireNumber}`), { x: xCenter, y: ctx.y, size: 11, font: ctx.fonts.bold, color: PRIMARY }) // Réduit de 12 à 11
   ctx.y -= 14 // Réduit de 16 à 14
 
   // Identité
-  await ensureSpace(ctx, 28) // Réduit de 32 à 28
   ctx.y = drawSectionHeader(ctx.page, "Identité", xCenter, ctx.y, ctx.fonts.bold)
   const xLabel = xCenter
   const xValue = xCenter + LABEL_WIDTH + VALUE_INDENT
 
-  for (const row of identityRows(l)) {
+  for (const row of rowsId) {
     const fontValue = row.highlight ? ctx.fonts.bold : ctx.fonts.reg
     const prep = prepareRowParts(row, fontValue, colWidth)
     await ensureSpace(ctx, prep.totalHeight + 1) // Réduit de 2 à 1
@@ -717,9 +819,10 @@ async function drawSingleCenteredColumnWithBreaks(ctx: DocContext, l?: Locataire
   }
 
   // Situation professionnelle
-  await ensureSpace(ctx, 28) // Réduit de 32 à 28
+  // Eviter titre orphelin
+  await ensureSpace(ctx, 28 + firstProHeight)
   ctx.y = drawSectionHeader(ctx.page, "Situation professionnelle", xCenter, ctx.y, ctx.fonts.bold)
-  for (const row of proRows(l)) {
+  for (const row of rowsPro) {
     const fontValue = row.highlight ? ctx.fonts.bold : ctx.fonts.reg
     const prep = prepareRowParts(row, fontValue, colWidth)
     await ensureSpace(ctx, prep.totalHeight + 1) // Réduit de 2 à 1
@@ -736,178 +839,200 @@ export function buildLocatairePdfFilename(data: AppFormData): string {
   return `FR-${safe || "Locataire"}.pdf`
 }
 
-// Main generator - OPTIMISÉ POUR 1 PAGE + PAGINATION INTELLIGENTE
+// Main generator with block-aware pagination
 export async function generatePdf(data: AppFormData): Promise<Buffer> {
   const pdf = await PDFDocument.create()
   const fontReg = await pdf.embedFont(StandardFonts.Helvetica)
   const fontBold = await pdf.embedFont(StandardFonts.HelveticaBold)
 
   const locs = data.locataires || []
-  
-  // STRATÉGIE DE PAGINATION OPTIMISÉE :
-  // - Page 1 : Locataires 1-2 (doit tenir sur 1 page)
-  // - Page 2 : Locataires 3-4 (si ils existent)
-  const page1Locs = locs.slice(0, 2)
-  const page2Locs = locs.slice(2, 4)
 
-  // Page 1 - Locataires 1-2 (doit tenir sur 1 page)
-  const page1 = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT])
-  let y1 = await drawHeader(page1, pdf, fontBold, fontReg)
-  y1 -= 4 // Réduit de 6 à 4
+  // Page 1 with full header
+  const page = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT])
+  let y = await drawHeader(page, pdf, fontBold, fontReg)
+  y -= 4
 
-  const ctx1: DocContext = {
+  const ctx: DocContext = {
     pdf,
-    page: page1,
-    y: y1,
+    page,
+    y,
     fonts: { reg: fontReg, bold: fontBold },
+    pageNumber: 1,
   }
 
-  // Dessiner les locataires de la page 1
-  if (page1Locs.length === 1) {
-    await drawSingleCenteredColumnWithBreaks(ctx1, page1Locs[0], 1) // Locataire 1
-  } else if (page1Locs.length === 2) {
-    await drawTwoColumnsAlignedWithBreaks(ctx1, page1Locs[0], page1Locs[1], 1, 2) // Locataires 1 et 2
+  // Draw all locataires sequentially, 1 or 2 per block
+  if (!locs.length) {
+    await ensureSpace(ctx, LINE_HEIGHT * 2)
+    ctx.page.drawText("Aucun locataire renseigné.", { x: MARGIN, y: ctx.y, size: BODY_SIZE, font: fontReg, color: BLACK })
+    ctx.y -= LINE_HEIGHT
+  } else {
+    for (let i = 0; i < locs.length; i += 2) {
+      const left = locs[i]
+      const right = locs[i + 1]
+      const leftNumber = i + 1
+      const rightNumber = i + 2
+
+      if (right) {
+        await drawTwoColumnsAlignedWithBreaks(ctx, left, right, leftNumber, rightNumber)
+      } else {
+        await drawSingleCenteredColumnWithBreaks(ctx, left, leftNumber)
+      }
+
+      // Compact separator between tenant blocks
+      if (i + 2 < locs.length) {
+        await ensureSpace(ctx, 14)
+        ctx.page.drawLine({
+          start: { x: MARGIN, y: ctx.y },
+          end: { x: PAGE_WIDTH - MARGIN, y: ctx.y },
+          thickness: 1,
+          color: SEP_GRAY,
+        })
+        ctx.y -= 8
+      }
+    }
   }
 
-  // Sections communes sur la page 1 (après les locataires)
-  await ensureSpace(ctx1, 20) // Réduit de 22 à 20
-  ctx1.page.drawLine({
-    start: { x: MARGIN, y: ctx1.y },
-    end: { x: PAGE_WIDTH - MARGIN, y: ctx1.y },
+  // Sections communes
+  await ensureSpace(ctx, 20)
+  ctx.page.drawLine({
+    start: { x: MARGIN, y: ctx.y },
+    end: { x: PAGE_WIDTH - MARGIN, y: ctx.y },
     thickness: 1,
     color: SEP_GRAY,
   })
-  ctx1.y -= 12 // Réduit de 14 à 12
+  ctx.y -= 12
 
-  // Enfants à charge (sans titre de section)
+  // Enfants à charge
   const enfants = (data.nombreEnfantsFoyer ?? 0).toString()
-  await ensureSpace(ctx1, 26) // Réduit de 30 à 26
+  await ensureSpace(ctx, 26)
   const enfantsText = `Nombre d'enfants à charge : ${enfants}`
   const enfantsWrapped = wrapByWidth(pdfSafe(enfantsText), fontReg, BODY_SIZE, PAGE_WIDTH - 2 * MARGIN)
   for (const line of enfantsWrapped) {
-    await ensureSpace(ctx1, LINE_HEIGHT)
-    ctx1.page.drawText(line, { x: MARGIN, y: ctx1.y, size: BODY_SIZE, font: fontReg, color: BLACK })
-    ctx1.y -= LINE_HEIGHT
+    await ensureSpace(ctx, LINE_HEIGHT)
+    ctx.page.drawText(line, { x: MARGIN, y: ctx.y, size: BODY_SIZE, font: fontReg, color: BLACK })
+    ctx.y -= LINE_HEIGHT
   }
 
   // Garanties
-  await ensureSpace(ctx1, 28) // Réduit de 32 à 28
-  ctx1.y = drawSectionHeader(ctx1.page, "Garanties", MARGIN, ctx1.y, fontBold)
+  await ensureSpace(ctx, 28 + LINE_HEIGHT * 3)
+  ctx.y = drawSectionHeader(ctx.page, "Garanties", MARGIN, ctx.y, fontBold)
   const g = data.garanties
   if (g) {
-    // "Garant familial : Oui/Non"
     {
       const txt = pdfSafe(`Garant familial : ${nonEmpty(g.garantFamilial) ? g.garantFamilial : dash}`)
       const wrapped = wrapByWidth(txt, fontReg, BODY_SIZE, PAGE_WIDTH - 2 * MARGIN)
       for (const line of wrapped) {
-        await ensureSpace(ctx1, LINE_HEIGHT)
-        ctx1.page.drawText(line, { x: MARGIN, y: ctx1.y, size: BODY_SIZE, font: fontReg, color: BLACK })
-        ctx1.y -= LINE_HEIGHT
+        await ensureSpace(ctx, LINE_HEIGHT)
+        ctx.page.drawText(line, { x: MARGIN, y: ctx.y, size: BODY_SIZE, font: fontReg, color: BLACK })
+        ctx.y -= LINE_HEIGHT
       }
     }
 
-    // Précision (long text allowed)
     {
       const txt = nonEmpty(g.precisionGarant) ? `Précision : ${g.precisionGarant}` : "Précision : -"
       const wrapped = wrapByWidth(pdfSafe(txt), fontReg, BODY_SIZE, PAGE_WIDTH - 2 * MARGIN - 12)
       const lh = wrapped.length >= 3 ? LONG_LINE_HEIGHT : LINE_HEIGHT
       for (const line of wrapped) {
-        await ensureSpace(ctx1, lh)
-        ctx1.page.drawText(line, { x: MARGIN, y: ctx1.y, size: BODY_SIZE, font: fontReg, color: BLACK })
-        ctx1.y -= lh
+        await ensureSpace(ctx, lh)
+        ctx.page.drawText(line, { x: MARGIN, y: ctx.y, size: BODY_SIZE, font: fontReg, color: BLACK })
+        ctx.y -= lh
       }
     }
 
-    // Garantie Visale Oui/Non
     {
       const txt = pdfSafe(`Garantie Visale : ${nonEmpty(g.garantieVisale) ? g.garantieVisale : dash}`)
       const wrapped = wrapByWidth(txt, fontReg, BODY_SIZE, PAGE_WIDTH - 2 * MARGIN)
       for (const line of wrapped) {
-        await ensureSpace(ctx1, LINE_HEIGHT)
-        ctx1.page.drawText(line, { x: MARGIN, y: ctx1.y, size: BODY_SIZE, font: fontReg, color: BLACK })
-        ctx1.y -= LINE_HEIGHT
+        await ensureSpace(ctx, LINE_HEIGHT)
+        ctx.page.drawText(line, { x: MARGIN, y: ctx.y, size: BODY_SIZE, font: fontReg, color: BLACK })
+        ctx.y -= LINE_HEIGHT
+      }
+
+      const visaleInfo = pdfSafe("En savoir plus sur la garantie Visale : https://www.visale.fr/")
+      const visaleWrapped = wrapByWidth(visaleInfo, fontReg, LABEL_SIZE, PAGE_WIDTH - 2 * MARGIN)
+      for (const line of visaleWrapped) {
+        await ensureSpace(ctx, LINE_HEIGHT)
+        ctx.page.drawText(line, { x: MARGIN, y: ctx.y, size: LABEL_SIZE, font: fontReg, color: TEXT_INFO })
+        ctx.y -= LINE_HEIGHT
       }
     }
 
-    // Liste des garants en puces (version compacte)
     if (Array.isArray(g.garants) && g.garants.length) {
-      await ensureSpace(ctx1, LINE_HEIGHT)
-      ctx1.page.drawText(pdfSafe("Garants familiaux déclarés :"), {
+      await ensureSpace(ctx, LINE_HEIGHT * 2)
+      ctx.page.drawText(pdfSafe("Garants familiaux déclarés :"), {
         x: MARGIN,
-        y: ctx1.y,
+        y: ctx.y,
         size: BODY_SIZE,
         font: fontBold,
         color: BLACK,
       })
-      ctx1.y -= LINE_HEIGHT
+      ctx.y -= LINE_HEIGHT
       for (const ga of g.garants) {
         const name = [toTitleCase(ga.nom), toTitleCase(ga.prenom)].filter(Boolean).join(" ") || dash
         const line = `${name}${ga.email ? ` – ${ga.email}` : ""}${ga.telephone ? ` – ${ga.telephone}` : ""}`
         const wrapped = wrapByWidth(line, fontReg, BODY_SIZE, PAGE_WIDTH - 2 * MARGIN - 12)
         const lh = wrapped.length >= 3 ? LONG_LINE_HEIGHT : LINE_HEIGHT
         for (const l of wrapped) {
-          await ensureSpace(ctx1, lh)
-          ctx1.page.drawText(pdfSafe(`• ${l}`), {
+          await ensureSpace(ctx, lh)
+          ctx.page.drawText(pdfSafe(`• ${l}`), {
             x: MARGIN + 12,
-            y: ctx1.y,
+            y: ctx.y,
             size: BODY_SIZE,
             font: fontReg,
             color: BLACK,
           })
-          ctx1.y -= lh
+          ctx.y -= lh
         }
       }
-      ctx1.y -= 1 // Réduit de 2 à 1
+      ctx.y -= 1
     }
   } else {
-    await ensureSpace(ctx1, LINE_HEIGHT * 3)
-    ctx1.page.drawText("Garant familial : -", { x: MARGIN, y: ctx1.y, size: BODY_SIZE, font: fontReg, color: BLACK })
-    ctx1.y -= LINE_HEIGHT
-    ctx1.page.drawText("Précision : -", { x: MARGIN, y: ctx1.y, size: BODY_SIZE, font: fontReg, color: BLACK })
-    ctx1.y -= LINE_HEIGHT
-    ctx1.page.drawText("Garantie Visale : -", { x: MARGIN, y: ctx1.y, size: BODY_SIZE, font: fontReg, color: BLACK })
-    ctx1.y -= LINE_HEIGHT
+    await ensureSpace(ctx, LINE_HEIGHT * 4)
+    ctx.page.drawText("Garant familial : -", { x: MARGIN, y: ctx.y, size: BODY_SIZE, font: fontReg, color: BLACK })
+    ctx.y -= LINE_HEIGHT
+    ctx.page.drawText("Précision : -", { x: MARGIN, y: ctx.y, size: BODY_SIZE, font: fontReg, color: BLACK })
+    ctx.y -= LINE_HEIGHT
+    ctx.page.drawText("Garantie Visale : -", { x: MARGIN, y: ctx.y, size: BODY_SIZE, font: fontReg, color: BLACK })
+    ctx.y -= LINE_HEIGHT
+    ctx.page.drawText("En savoir plus sur la garantie Visale : https://www.visale.fr/", {
+      x: MARGIN,
+      y: ctx.y,
+      size: LABEL_SIZE,
+      font: fontReg,
+      color: TEXT_INFO,
+    })
+    ctx.y -= LINE_HEIGHT
   }
 
-  // DossierFacile (seulement si le locataire transmet son lien)
+  // DossierFacile
   if (data.dossierFacileLink && data.dossierFacileLink.trim()) {
-    await ensureSpace(ctx1, 28) // Réduit de 32 à 28
-    ctx1.y = drawSectionHeader(ctx1.page, "Gagnez du temps avec DossierFacile…", MARGIN, ctx1.y, fontBold)
+    await ensureSpace(ctx, 28 + LINE_HEIGHT)
+    ctx.y = drawSectionHeader(ctx.page, "Gagnez du temps avec DossierFacile…", MARGIN, ctx.y, fontBold)
     const df = pdfSafe((data.dossierFacileLink || "").trim())
     const dfWrapped = wrapByWidth(df, fontReg, BODY_SIZE, PAGE_WIDTH - 2 * MARGIN)
     for (const l of dfWrapped) {
-      await ensureSpace(ctx1, LINE_HEIGHT)
-      ctx1.page.drawText(l, { x: MARGIN, y: ctx1.y, size: BODY_SIZE, font: fontReg, color: BLACK })
-      ctx1.y -= LINE_HEIGHT
+      await ensureSpace(ctx, LINE_HEIGHT)
+      ctx.page.drawText(l, { x: MARGIN, y: ctx.y, size: BODY_SIZE, font: fontReg, color: BLACK })
+      ctx.y -= LINE_HEIGHT
     }
   }
 
-  // Footer sur la page 1
-  drawFooter(ctx1.page, fontReg)
-
-  // Page 2 - Locataires 3-4 (seulement si ils existent)
-  if (page2Locs.length > 0) {
-    const page2 = pdf.addPage([PAGE_WIDTH, PAGE_HEIGHT])
-    let y2 = await drawHeader(page2, pdf, fontBold, fontReg)
-    y2 -= 4
-
-    const ctx2: DocContext = {
-      pdf,
-      page: page2,
-      y: y2,
-      fonts: { reg: fontReg, bold: fontBold },
+  // Informations complémentaires
+  if (nonEmpty(data.criteresRecherche?.informationsComplementaires)) {
+    await ensureSpace(ctx, 28 + LINE_HEIGHT)
+    ctx.y = drawSectionHeader(ctx.page, "Informations complémentaires", MARGIN, ctx.y, fontBold)
+    const extra = pdfSafe(data.criteresRecherche?.informationsComplementaires || "")
+    const wrapped = wrapByWidth(extra, fontReg, BODY_SIZE, PAGE_WIDTH - 2 * MARGIN)
+    const lh = wrapped.length >= 3 ? LONG_LINE_HEIGHT : LINE_HEIGHT
+    for (const line of wrapped) {
+      await ensureSpace(ctx, lh)
+      ctx.page.drawText(line, { x: MARGIN, y: ctx.y, size: BODY_SIZE, font: fontReg, color: BLACK })
+      ctx.y -= lh
     }
-
-    // Dessiner les locataires de la page 2
-    if (page2Locs.length === 1) {
-      await drawSingleCenteredColumnWithBreaks(ctx2, page2Locs[0], 3) // Locataire 3
-    } else if (page2Locs.length === 2) {
-      await drawTwoColumnsAlignedWithBreaks(ctx2, page2Locs[0], page2Locs[1], 3, 4) // Locataires 3 et 4
-    }
-
-    // Footer sur la page 2
-    drawFooter(ctx2.page, fontReg)
   }
+
+  // Footer on last page
+  drawFooter(ctx.page, fontReg)
 
   const bytes = await pdf.save()
   return Buffer.from(bytes)

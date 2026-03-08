@@ -12,7 +12,7 @@ import {
   HandCoins,
   Home,
   Info,
-  Sparkles,
+  FlaskConical,
   Shield,
   Tag,
   User,
@@ -44,6 +44,16 @@ import { CommuneAutocompleteInput } from "@/components/commune-autocomplete-inpu
 import { AddressAutocompleteField } from "@/components/address-autocomplete-field"
 import { cn } from "@/lib/utils"
 import { TEST_FILL_ENABLED } from "@/lib/feature-flags"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 type OuiNon = "oui" | "non" | ""
 
@@ -636,7 +646,7 @@ const buildSamplePersonBuyer = (index: number, situationMatrimoniale?: Situation
     notaireDesigne: "non",
     notaireNom: "Etude Durand",
     notaireVille: sampleCity(),
-    precisions: "Données fictives pour vérifier la génération du PDF."
+    precisions: ""
   }
 }
 
@@ -687,7 +697,7 @@ const buildSampleSociete = (): SocieteSeller => {
       telephone: buildTestPhone(),
       email: buildTestEmail("mandataire")
     },
-    precisions: "Préremplissage automatique pour tests."
+    precisions: ""
   }
 }
 
@@ -742,7 +752,7 @@ const buildSamplePersonneMorale = (): PersonneMoraleSeller => {
   const base = createEmptyPersonneMorale()
   return {
     ...base,
-    description: "Fonds de dotation Exemple - données fictives pour test.",
+    description: "Fonds de dotation Exemple",
     telephone: buildTestPhone(),
     email: buildTestEmail("personne-morale"),
     representantType: "madame",
@@ -763,7 +773,7 @@ const buildSamplePersonneMorale = (): PersonneMoraleSeller => {
       telephone: buildTestPhone(),
       email: buildTestEmail("mandataire-morale")
     },
-    precisions: "Données fictives pour test."
+    precisions: ""
   }
 }
 
@@ -806,13 +816,13 @@ const buildSampleMineur = (): MineurSeller => {
     },
     autre: {
       ...base.autre,
-      description: "Autre représentant (fictif)",
+      description: "Autre représentant",
       signataireNom: sampleLastName(),
       signatairePrenom: sampleFirstName(),
       telephone: buildTestPhone(),
       email: buildTestEmail("autre-representant")
     },
-    precisions: "Données fictives pour test PDF."
+    precisions: ""
   }
 }
 
@@ -827,19 +837,19 @@ const buildSampleMajeurProtege = (): MajeurProtegeSeller => {
     nationalite: "Française",
     adresse: buildTestAddress(),
     mesure: "curatelle",
-    mesureDetails: "Curatelle simple prononcée par le juge (fictif).",
+    mesureDetails: "Curatelle simple prononcée par le juge.",
     representantNom: sampleLastName(),
     representantPrenom: sampleFirstName(),
     representantQualite: "Curateur",
-    baseJuridique: "Jugement du TJ (données fictives)",
+    baseJuridique: "Jugement du TJ",
     telephone: buildTestPhone(),
     email: buildTestEmail("curateur"),
-    precisions: "Fiche générée automatiquement pour test."
+    precisions: ""
   }
 }
 
 const buildSampleAutre = (): AutreSituation => ({
-  description: "Situation particulière fictive (usufruit, indivision complexe...) pour test.",
+  description: "Situation particulière (usufruit, indivision complexe...)",
   contactNom: sampleLastName(),
   contactPrenom: sampleFirstName(),
   telephone: buildTestPhone(),
@@ -2425,6 +2435,7 @@ export default function AcquereurFormPage() {
   const [isSuccess, setIsSuccess] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [showValidationErrors, setShowValidationErrors] = useState(false)
+  const [showTestConfirmDialog, setShowTestConfirmDialog] = useState(false)
   const [missingFields, setMissingFields] = useState<Record<string, boolean>>({})
   const acquereurTypeIndexRef = useRef(0)
 
@@ -2767,7 +2778,7 @@ const validateFinancement = (f: FinancementAcquisition): string[] => {
     setShowValidationErrors(false)
     setMissingFields({})
     setErrorMessage(null)
-    toast.success("Champs préremplis avec des données fictives pour vos tests PDF.")
+    toast.success("Champs préremplis.")
   }
 
   // handleSubmit moved below with validation
@@ -2847,16 +2858,32 @@ const validateFinancement = (f: FinancementAcquisition): string[] => {
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-xl font-semibold text-slate-900 leading-tight">Fiche de renseignements acquéreur</h1>
                 {TEST_FILL_ENABLED && (
-                  <Button
-                    type="button"
-                    onClick={fillWithTestData}
-                    variant="secondary"
-                    size="sm"
-                    className="h-8 px-2.5 text-xs bg-amber-50 text-amber-800 border border-amber-200 shadow-none hover:bg-amber-100"
-                  >
-                    <Sparkles className="h-4 w-4 mr-1" />
-                    Remplir en test
-                  </Button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setShowTestConfirmDialog(true)}
+                      title="Préremplir avec des données de test"
+                      className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded border-0 bg-transparent cursor-pointer"
+                    >
+                      <FlaskConical className="h-3 w-3" />
+                    </button>
+                    <AlertDialog open={showTestConfirmDialog} onOpenChange={setShowTestConfirmDialog}>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Préremplir le formulaire</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Les champs du formulaire seront préremplis. Cette action remplace tout le contenu actuel.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={fillWithTestData}>
+                            Préremplir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </>
                 )}
               </div>
             </div>

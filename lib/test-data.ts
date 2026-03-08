@@ -61,14 +61,18 @@ export function createTestLocataire(index = 1, overrides: Partial<Locataire> = {
     employeurAdresse: buildTestAddress(),
     employeurTelephone: buildTestPhone(),
     dateEmbauche: buildTestDate(2016, 2023),
-    typeContrat: pickRandom(["CDI", "CDD", "Stage", "Alternance"]),
+    typeContrat: pickRandom(["CDI", "CDD", "Fonctionnaire", "Alternance", "Stage", "Étudiant", "Retraité"]),
     salaire: `${2000 + Math.floor(Math.random() * 2000)}`,
     salaireNet: `${2400 + Math.floor(Math.random() * 1200)}`,
     indemnitesChomage: "",
     aahAllocationsHandicap: "",
     rsa: "",
     pension: "",
+    pensionRetraite: "",
+    pensionReversion: "",
+    pensionAlimentaire: "",
     revenusAutoEntrepreneur: "",
+    autreRevenu: "",
     aidesAuLogement: "250",
     revenusAdditionnels: [buildRevenuAdditionnel(index)],
     dateFinContrat: "",
@@ -110,7 +114,7 @@ export const createTestCriteres = (): CriteresRecherche => ({
 export const createTestGaranties = (): Garanties => ({
   garantFamilial: "oui",
   garantieVisale: "non",
-  precisionGarant: "Parents se portent garants (données fictives)",
+  precisionGarant: "Parents se portent garants",
   garants: [
     {
       nom: sampleLastName(),

@@ -303,7 +303,7 @@ function buildCustomerComment(data: AppFormData) {
     const proParts = []
     if (primary.profession) proParts.push(primary.profession)
     if (primary.typeContrat) proParts.push(primary.typeContrat)
-    if (proParts.length) lines.push(`Profession / Contrat : ${proParts.join(" / ")}`)
+    if (proParts.length) lines.push(`Profession / Situation professionnelle : ${proParts.join(" / ")}`)
 
     if (primary.situationConjugale) lines.push(`Situation matrimoniale : ${primary.situationConjugale}`)
   }
@@ -342,8 +342,11 @@ function buildSearchComment(data: AppFormData) {
   if (primary?.indemnitesChomage) revenusComplementaires.push(`Chômage ${formatEuroAmount(primary.indemnitesChomage)}`)
   if (primary?.aahAllocationsHandicap) revenusComplementaires.push(`AAH ${formatEuroAmount(primary.aahAllocationsHandicap)}`)
   if (primary?.rsa) revenusComplementaires.push(`RSA ${formatEuroAmount(primary.rsa)}`)
-  if (primary?.pension) revenusComplementaires.push(`Pension ${formatEuroAmount(primary.pension)}`)
-  if (primary?.revenusAutoEntrepreneur) revenusComplementaires.push(`AE ${formatEuroAmount(primary.revenusAutoEntrepreneur)}`)
+  if ((primary as any)?.pensionRetraite || primary?.pension) revenusComplementaires.push(`Pension retraite ${formatEuroAmount((primary as any).pensionRetraite || primary.pension)}`)
+  if ((primary as any)?.pensionReversion) revenusComplementaires.push(`Pension reversion ${formatEuroAmount((primary as any).pensionReversion)}`)
+  if ((primary as any)?.pensionAlimentaire) revenusComplementaires.push(`Pension alimentaire ${formatEuroAmount((primary as any).pensionAlimentaire)}`)
+  if (primary?.revenusAutoEntrepreneur) revenusComplementaires.push(`Revenus independant complementaires ${formatEuroAmount(primary.revenusAutoEntrepreneur)}`)
+  if ((primary as any)?.autreRevenu) revenusComplementaires.push(`Autre revenu ${formatEuroAmount((primary as any).autreRevenu)}`)
   if (primary?.aidesAuLogement) revenusComplementaires.push(`Aides logement ${formatEuroAmount(primary.aidesAuLogement)}`)
   if (Array.isArray(primary?.revenusAdditionnels)) {
     for (const r of primary.revenusAdditionnels) {
@@ -353,7 +356,7 @@ function buildSearchComment(data: AppFormData) {
   if (primary?.profession || primary?.typeContrat || revenusNet || revenusComplementaires.length) {
     const proParts: string[] = []
     if (primary?.profession) proParts.push(`Profession ${primary.profession}`)
-    if (primary?.typeContrat) proParts.push(`Type de contrat ${primary.typeContrat}`)
+    if (primary?.typeContrat) proParts.push(`Situation professionnelle ${primary.typeContrat}`)
     const revenusParts = []
     if (revenusNet) revenusParts.push(`Revenus mensuels ${revenusNet}`)
     if (revenusComplementaires.length) revenusParts.push(`Compléments ${revenusComplementaires.join(" | ")}`)
@@ -403,7 +406,7 @@ function buildLocataireSummary(locataire: Locataire, index: number) {
     parts.push(`Date et lieu de naissance : ${formatDateFR(locataire.dateNaissance)}${locataire.lieuNaissance ? `, ${locataire.lieuNaissance}` : ""}`)
   }
   if (locataire.situationConjugale) parts.push(`Situation familiale : ${locataire.situationConjugale}`)
-  if (locataire.typeContrat) parts.push(`Type de contrat / statut : ${locataire.typeContrat}`)
+  if (locataire.typeContrat) parts.push(`Situation professionnelle : ${locataire.typeContrat}`)
   if (locataire.profession) parts.push(`Profession : ${locataire.profession}`)
   if (locataire.employeurNom) parts.push(`Employeur (nom) : ${locataire.employeurNom}`)
 

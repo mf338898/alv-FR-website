@@ -165,6 +165,23 @@ type Row = {
   highlight?: boolean;
 }
 
+const SITUATIONS_SALARIEES = new Set([
+  "CDI",
+  "CDD",
+  "Fonctionnaire",
+  "Alternance",
+  "Stage",
+  "Contrat aidé / insertion",
+])
+const SITUATIONS_INDEPENDANTES = new Set([
+  "Indépendant / freelance / auto-entrepreneur",
+  "Intermittent du spectacle",
+])
+const SITUATIONS_SANS_ACTIVITE = new Set([
+  "Sans activité professionnelle",
+  "Parent au foyer",
+])
+
 // Identity rows - EXACTEMENT comme pdf-generator.ts
 function identityRows(l?: Locataire): Row[] {
   const [addr1, addr2] = splitAddressLines(l?.adresseActuelle)
@@ -187,14 +204,53 @@ function identityRows(l?: Locataire): Row[] {
   ]
 }
 
+function professionalRows(l?: Locataire): Row[] {
+  const situation = (l?.typeContrat || "").trim()
+  const isSalarie = SITUATIONS_SALARIEES.has(situation)
+  const isIndependent = SITUATIONS_INDEPENDANTES.has(situation)
+  const showProfession = !SITUATIONS_SANS_ACTIVITE.has(situation)
+  const rows: Row[] = [
+    { label: "Situation professionnelle", value: pdfSafe(showOrDash(l?.typeContrat)) },
+    ...(showProfession ? [{ label: "Profession / activité", value: pdfSafe(showOrDash(l?.profession)) }] : []),
+  ]
+  const hasActivityInfo =
+    nonEmpty(l?.employeurNom) ||
+    nonEmpty(l?.employeurAdresse) ||
+    nonEmpty(l?.employeurTelephone) ||
+    nonEmpty(l?.dateEmbauche) ||
+    nonEmpty(l?.dateDebutActivite) ||
+    nonEmpty(l?.dateFinContrat)
+  if (isSalarie && hasActivityInfo) {
+    rows.push({ label: "Employeur (nom)", value: pdfSafe(showOrDash(l?.employeurNom)) })
+    rows.push({ label: "Employeur (adresse)", value: pdfSafe(showOrDash(l?.employeurAdresse)) })
+    rows.push({ label: "Employeur (téléphone)", value: pdfSafe(showOrDash(l?.employeurTelephone)) })
+    rows.push({ label: "Date d'embauche", value: pdfSafe(showOrDash(l?.dateEmbauche)) })
+    if (nonEmpty(l?.dateFinContrat)) {
+      rows.push({ label: "Date de fin de contrat", value: pdfSafe(showOrDash(l?.dateFinContrat)) })
+    }
+  }
+  if (isIndependent && hasActivityInfo) {
+    rows.push({ label: "Entreprise / activité", value: pdfSafe(showOrDash(l?.employeurNom)) })
+    rows.push({ label: "Adresse activité", value: pdfSafe(showOrDash(l?.employeurAdresse)) })
+    rows.push({ label: "Téléphone activité", value: pdfSafe(showOrDash(l?.employeurTelephone)) })
+    if (nonEmpty(l?.dateDebutActivite)) {
+      rows.push({ label: "Date de début d'activité", value: pdfSafe(showOrDash(l?.dateDebutActivite)) })
+    }
+  }
+  return rows
+}
+
 function revenusRows(l?: Locataire): Row[] {
   const rows: Row[] = []
-  if (nonEmpty(l?.salaireNet)) rows.push({ label: "Salaire net", value: euro(l?.salaireNet) })
+  if (nonEmpty(l?.salaireNet)) rows.push({ label: "Revenu principal mensuel", value: euro(l?.salaireNet) })
   if (nonEmpty(l?.indemnitesChomage)) rows.push({ label: "Indemnités chômage", value: euro(l?.indemnitesChomage) })
-  if (nonEmpty(l?.aahAllocationsHandicap)) rows.push({ label: "AAH / Allocations handicap", value: euro(l?.aahAllocationsHandicap) })
+  if (nonEmpty((l as any)?.pensionRetraite) || nonEmpty(l?.pension)) rows.push({ label: "Pension de retraite", value: euro((l as any)?.pensionRetraite || l?.pension) })
+  if (nonEmpty((l as any)?.pensionReversion)) rows.push({ label: "Pension de réversion", value: euro((l as any)?.pensionReversion) })
+  if (nonEmpty((l as any)?.pensionAlimentaire)) rows.push({ label: "Pension alimentaire", value: euro((l as any)?.pensionAlimentaire) })
+  if (nonEmpty(l?.aahAllocationsHandicap)) rows.push({ label: "AAH / allocations handicap", value: euro(l?.aahAllocationsHandicap) })
   if (nonEmpty(l?.rsa)) rows.push({ label: "RSA", value: euro(l?.rsa) })
-  if (nonEmpty(l?.pension)) rows.push({ label: "Pension (retraite, pension alimentaire…)", value: euro(l?.pension) })
-  if (nonEmpty(l?.revenusAutoEntrepreneur)) rows.push({ label: "Revenus auto-entrepreneur / indépendant", value: euro(l?.revenusAutoEntrepreneur) })
+  if (nonEmpty(l?.revenusAutoEntrepreneur)) rows.push({ label: "Revenus indépendant / auto-entrepreneur complémentaires", value: euro(l?.revenusAutoEntrepreneur) })
+  if (nonEmpty((l as any)?.autreRevenu)) rows.push({ label: "Autre revenu", value: euro((l as any)?.autreRevenu) })
   if (nonEmpty(l?.aidesAuLogement)) rows.push({ label: "Aides au logement (APL estimées)", value: euro(l?.aidesAuLogement) })
   if (rows.length === 0) rows.push({ label: "Revenus mensuels", value: dash })
   return rows
@@ -418,6 +474,30 @@ async function drawTwoColumnsAlignedWithBreaks(ctx: DocContext, left?: Locataire
     ctx.y = Math.min(yAfterLeft, yAfterRight)
   }
 
+  const rowsProL = professionalRows(left)
+  const rowsProR = professionalRows(right)
+  await ensureSpace(ctx, 32)
+  ctx.y = drawSectionHeader(ctx.page, "Situation professionnelle", xLeft, ctx.y, ctx.fonts.bold)
+
+  for (let i = 0; i < Math.max(rowsProL.length, rowsProR.length); i++) {
+    const rL = rowsProL[i] || { label: rowsProR[i]?.label || "", value: dash }
+    const rR = rowsProR[i] || { label: rowsProL[i]?.label || "", value: dash }
+    const fontLeft = rL.highlight ? ctx.fonts.bold : ctx.fonts.reg
+    const fontRight = rR.highlight ? ctx.fonts.bold : ctx.fonts.reg
+    const prepL = prepareRowParts(rL, fontLeft, layout.colWidth)
+    const prepR = prepareRowParts(rR, fontRight, layout.colWidth)
+    const pairHeight = Math.max(prepL.totalHeight, prepR.totalHeight) + 2
+    ctx.drawColumnHeadingsNext = () => drawColumnHeadingsInline(ctx, xLeft, right ? xRight : undefined, leftNumber, rightNumber)
+    await ensureSpace(ctx, pairHeight)
+    const yStart = ctx.y
+    drawLabeledRowFromPrepared(ctx, rL, prepL, layout.xLabelL, layout.xValueL)
+    const yAfterLeft = ctx.y
+    ctx.y = yStart
+    drawLabeledRowFromPrepared(ctx, rR, prepR, layout.xLabelR, layout.xValueR)
+    const yAfterRight = ctx.y
+    ctx.y = Math.min(yAfterLeft, yAfterRight)
+  }
+
   const rowsRevL = revenusRows(left)
   const rowsRevR = revenusRows(right)
   await ensureSpace(ctx, 32)
@@ -464,6 +544,15 @@ async function drawSingleCenteredColumnWithBreaks(ctx: DocContext, l?: Locataire
     const fontValue = row.highlight ? ctx.fonts.bold : ctx.fonts.reg
     const prep = prepareRowParts(row, fontValue, colWidth)
     await ensureSpace(ctx, prep.totalHeight + 2) // Augmenté de 1 à 2
+    drawLabeledRowFromPrepared(ctx, row, prep, xLabel, xValue)
+  }
+
+  await ensureSpace(ctx, 32)
+  ctx.y = drawSectionHeader(ctx.page, "Situation professionnelle", xCenter, ctx.y, ctx.fonts.bold)
+  for (const row of professionalRows(l)) {
+    const fontValue = row.highlight ? ctx.fonts.bold : ctx.fonts.reg
+    const prep = prepareRowParts(row, fontValue, colWidth)
+    await ensureSpace(ctx, prep.totalHeight + 2)
     drawLabeledRowFromPrepared(ctx, row, prep, xLabel, xValue)
   }
 

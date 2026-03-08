@@ -12,10 +12,15 @@ import {
   ArrowLeft,
   Send,
   CheckCircle,
-  Sparkles,
   Users,
   Shield,
-  Info
+  Info,
+  Mail,
+  ChevronDown,
+  ChevronUp,
+  X,
+  Trash2,
+  FlaskConical
 } from "lucide-react"
 import { createTestGarantContact, createTestLocataire } from "@/lib/test-data"
 import { TEST_FILL_ENABLED } from "@/lib/feature-flags"
@@ -24,6 +29,32 @@ import { LoadingOverlay } from "@/components/loading-overlay"
 import { GarantCard } from "@/components/garant-card"
 import ErrorMessage from "@/components/error-message"
 import { FadeInText, Reveal } from "@/components/react-bits"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+
+const CAUTIONNAIRE_MAILTO_SUBJECT = encodeURIComponent(
+  "Envoi de pièces justificatives - Dossier cautionnaire"
+)
+
+const CAUTIONNAIRE_MAILTO_BODY = encodeURIComponent(
+  "Bonjour,\n\nVeuillez trouver ci-joint les pièces justificatives demandées pour mon dossier cautionnaire.\n\nNom :\nPrénom :\nNom du locataire concerné (si connu) :\n\nCordialement,"
+)
+
+const CAUTIONNAIRE_MAILTO_HREF = `mailto:contact@alvimmobilier.bzh?subject=${CAUTIONNAIRE_MAILTO_SUBJECT}&body=${CAUTIONNAIRE_MAILTO_BODY}`
 
 // Créer un garant vide
 const createEmptyGarant = (): Locataire => ({
@@ -54,7 +85,11 @@ const createEmptyGarant = (): Locataire => ({
   aahAllocationsHandicap: "",
   rsa: "",
   pension: "",
+  pensionRetraite: "",
+  pensionReversion: "",
+  pensionAlimentaire: "",
   revenusAutoEntrepreneur: "",
+  autreRevenu: "",
   aidesAuLogement: "",
   revenusAdditionnels: [],
   dateFinContrat: "",
@@ -82,6 +117,10 @@ export default function GarantFormPage() {
   ])
   const [cautionnes, setCautionnes] = useState<GarantContact[]>([])
   
+  const [showPiecesJustificatives, setShowPiecesJustificatives] = useState(false)
+  const [showTestConfirmDialog, setShowTestConfirmDialog] = useState(false)
+  const [showRemoveGarantDialog, setShowRemoveGarantDialog] = useState(false)
+  const [indexToRemoveGarant, setIndexToRemoveGarant] = useState<number>(0)
   const [editingField, setEditingField] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -127,10 +166,14 @@ export default function GarantFormPage() {
   const REVENU_KEYS = [
     "salaireNet",
     "indemnitesChomage",
+    "pensionRetraite",
+    "pensionReversion",
+    "pensionAlimentaire",
     "aahAllocationsHandicap",
     "rsa",
     "pension",
     "revenusAutoEntrepreneur",
+    "autreRevenu",
     "aidesAuLogement",
   ] as const
 
@@ -254,7 +297,7 @@ export default function GarantFormPage() {
     setEditingField(null)
     setShowValidationErrors(false)
     setErrorMessage(null)
-    toast.success("Champs préremplis avec des données fictives pour vos tests PDF.")
+    toast.success("Champs préremplis.")
   }
 
   return (
@@ -271,6 +314,38 @@ export default function GarantFormPage() {
           onClose={() => setErrorMessage(null)}
         />
       )}
+
+      {/* Dialog confirmation suppression garant */}
+      <AlertDialog open={showRemoveGarantDialog} onOpenChange={setShowRemoveGarantDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer le garant</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer ce garant ? Cette action est irréversible.
+              {garants[indexToRemoveGarant] && (
+                <>
+                  <br />
+                  <strong>
+                    Garant {indexToRemoveGarant + 1} : {garants[indexToRemoveGarant].prenom} {garants[indexToRemoveGarant].nom}
+                  </strong>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                removeGarant(indexToRemoveGarant)
+                setShowRemoveGarantDialog(false)
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       {/* Header */}
       <div className="bg-white border-b border-slate-200 px-4 sm:px-6 py-4 pt-safe shadow-sm">
@@ -294,16 +369,32 @@ export default function GarantFormPage() {
                 </h1>
                 <Badge className="bg-purple-50 text-purple-700 border-purple-200">Je me porte cautionnaire</Badge>
                 {TEST_FILL_ENABLED && (
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleAutofill}
-                    className="h-8 px-2.5 text-xs bg-purple-50 text-purple-700 border border-purple-200 shadow-none hover:bg-purple-100"
-                  >
-                    <Sparkles className="h-4 w-4" />
-                    Remplir en test
-                  </Button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setShowTestConfirmDialog(true)}
+                      title="Préremplir"
+                      className="text-slate-400 hover:text-slate-600 transition-colors p-1 rounded border-0 bg-transparent cursor-pointer"
+                    >
+                      <FlaskConical className="h-3 w-3" />
+                    </button>
+                    <AlertDialog open={showTestConfirmDialog} onOpenChange={setShowTestConfirmDialog}>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Préremplir le formulaire</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Les champs du formulaire seront préremplis. Cette action remplace tout le contenu actuel.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleAutofill}>
+                            Préremplir
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </>
                 )}
               </div>
             </div>
@@ -327,10 +418,6 @@ export default function GarantFormPage() {
               Renseignez vos informations de garant (identité, lien avec le locataire, revenus, type de caution) dans un formulaire guidé.
               Temps estimé : 5 à 10 minutes – vous recevrez un récapitulatif par email.
             </p>
-            <div className="flex items-center gap-2 text-sm text-white/80">
-              <Info className="h-4 w-4" />
-              <span>Données fictives générées automatiquement pour vérifier l’envoi des PDF.</span>
-            </div>
           </CardHeader>
           <CardContent className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
             {[
@@ -353,6 +440,89 @@ export default function GarantFormPage() {
         </Card>
         </Reveal>
 
+        {/* Pièces justificatives à prévoir - bouton déroulant */}
+        <Reveal delay={40}>
+        <Card className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setShowPiecesJustificatives(!showPiecesJustificatives)}
+            className="w-full px-4 sm:px-6 py-4 flex items-center justify-between gap-3 text-left hover:bg-slate-50/80 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-sky-100 text-sky-700">
+                <Info className="h-5 w-5" />
+              </div>
+              <span className="font-semibold text-slate-900">
+                Pièces justificatives à prévoir
+              </span>
+            </div>
+            {showPiecesJustificatives ? (
+              <ChevronUp className="h-5 w-5 text-slate-500 flex-shrink-0" />
+            ) : (
+              <ChevronDown className="h-5 w-5 text-slate-500 flex-shrink-0" />
+            )}
+          </button>
+          {showPiecesJustificatives && (
+            <CardContent className="border-t border-slate-200 px-4 sm:px-6 py-4 space-y-4 text-sm text-slate-700">
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-slate-600">
+                  La fiche de renseignements vous permet de préparer votre dossier cautionnaire.
+                  Si le dossier locataire est retenu ou en cours d’étude, nous pourrons vous demander les pièces justificatives ci-dessous afin de compléter le dossier transmis au propriétaire.
+                </p>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowPiecesJustificatives(false)}
+                  className="flex-shrink-0 rounded-full h-8 w-8 text-slate-500 hover:text-slate-700 hover:bg-slate-100"
+                  aria-label="Fermer"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            <div className="space-y-1">
+              <p className="font-medium text-slate-900">Justificatif de domicile</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>3 dernières quittances de loyer si vous êtes locataire</li>
+                <li>ou attestation d’hébergement si vous êtes hébergé(e)</li>
+                <li>ou dernière taxe foncière si vous êtes propriétaire</li>
+              </ul>
+            </div>
+
+            <div className="space-y-1">
+              <p className="font-medium text-slate-900">Justificatifs de ressources</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>dernier avis d’imposition</li>
+                <li>ou les 2 derniers avis d’imposition en cas de location « loi Pinel »</li>
+              </ul>
+            </div>
+
+            <div className="space-y-1">
+              <p className="font-medium text-slate-900">Justificatifs d’activité professionnelle</p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>contrat de travail</li>
+                <li>3 derniers bulletins de salaire</li>
+                <li>ou 2 derniers bilans pour les travailleurs indépendants</li>
+              </ul>
+            </div>
+
+            <div className="pt-2 flex justify-end">
+              <Button
+                asChild
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2 border-purple-200 text-purple-700 hover:bg-purple-50"
+              >
+                <a href={CAUTIONNAIRE_MAILTO_HREF}>
+                  <Mail className="h-4 w-4" />
+                  Envoyer mes pièces
+                </a>
+              </Button>
+            </div>
+          </CardContent>
+          )}
+        </Card>
+        </Reveal>
+
         {/* Garants */}
         <div className="space-y-4">
           <Reveal>
@@ -363,10 +533,10 @@ export default function GarantFormPage() {
               </div>
               <div>
                 <CardTitle className="text-lg font-semibold text-slate-900">Garants ({garants.length})</CardTitle>
-                <p className="text-sm text-slate-600">Identite et type de contrat obligatoires, le reste en option.</p>
+                <p className="text-sm text-slate-600">Identite et situation professionnelle obligatoires, le reste en option.</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <div className="hidden sm:flex items-center gap-2 text-xs text-slate-600">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full" />
                 <span>Badges "Rempli" pour suivre l'avancement</span>
@@ -380,6 +550,35 @@ export default function GarantFormPage() {
                 <Plus className="h-4 w-4" />
                 Ajouter un garant
               </Button>
+              {garants.length > 1 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Supprimer un garant
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {garants.map((garant, index) => (
+                      <DropdownMenuItem
+                        key={index}
+                        onSelect={(e) => {
+                          e.preventDefault()
+                          setIndexToRemoveGarant(index)
+                          setShowRemoveGarantDialog(true)
+                        }}
+                        className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                      >
+                        Garant {index + 1} : {garant.prenom || "—"} {garant.nom || "—"}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </div>
           </div>
           </Reveal>
@@ -422,12 +621,12 @@ export default function GarantFormPage() {
               <div className="bg-rose-50 border border-rose-200 rounded-lg px-4 py-3 flex items-center gap-2">
                 <Info className="h-5 w-5 text-rose-600" />
                 <span className="text-rose-800 text-sm">
-                  Merci de remplir les champs obligatoires : identité, type de contrat et au moins un revenu mensuel par garant.
+                  Merci de remplir les champs obligatoires : identité, situation professionnelle et au moins un revenu mensuel par garant.
                 </span>
               </div>
             )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full">
               <Button
                 onClick={addGarant}
                 variant="outline"
@@ -437,6 +636,35 @@ export default function GarantFormPage() {
                 <Plus className="h-5 w-5" />
                 Ajouter un garant
               </Button>
+              {garants.length > 1 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="flex items-center justify-center gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                      Supprimer un garant
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-56">
+                    {garants.map((garant, index) => (
+                      <DropdownMenuItem
+                        key={index}
+                        onSelect={(e) => {
+                          e.preventDefault()
+                          setIndexToRemoveGarant(index)
+                          setShowRemoveGarantDialog(true)
+                        }}
+                        className="text-red-600 focus:text-red-700 focus:bg-red-50"
+                      >
+                        Garant {index + 1} : {garant.prenom || "—"} {garant.nom || "—"}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               <Button
                 onClick={handleSubmit}
                 disabled={isSubmitting}
